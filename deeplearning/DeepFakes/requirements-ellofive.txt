@@ -6,7 +6,7 @@ tqdm
 scikit-image
 h5py
 keras>=2.10,<3
-tensorflow>=2.10,<2.16
+tensorflow>=2.12.1,<2.16
 # optional extract stack (needs cmake/build tools for dlib):
 # face_recognition
 # dlib
