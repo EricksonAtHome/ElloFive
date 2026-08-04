@@ -1,0 +1,32 @@
+{
+  "name": "ellofive",
+  "version": "1.0.0",
+  "description": "ElloFive — your own LLM runtime (Ollama rebranded) with FRC7 FRCL orchestration",
+  "type": "module",
+  "bin": {
+    "ellofive": "./bin/ellofive",
+    "ellofive-frc": "./frc/cli.js"
+  },
+  "scripts": {
+    "setup": "bash scripts/setup-model.sh",
+    "install:runtime": "bash scripts/install.sh",
+    "serve": "ollama serve",
+    "frc": "node frc/cli.js",
+    "test": "bash scripts/test-ellofive.sh",
+    "api": "node frc/server.js"
+  },
+  "keywords": [
+    "ellofive",
+    "ollama",
+    "llm",
+    "frc7",
+    "frcl"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

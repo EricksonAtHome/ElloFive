@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+# ElloFive — branded CLI wrapper around Ollama
+set -euo pipefail
+
+ELLOFIVE_HOST="${ELLOFIVE_HOST:-http://127.0.0.1:11434}"
+export OLLAMA_HOST="${OLLAMA_HOST:-$ELLOFIVE_HOST}"
+
+OLLAMA_BIN="${OLLAMA_BIN:-$(command -v ollama || true)}"
+if [[ -z "${OLLAMA_BIN}" ]]; then
+  echo "ElloFive: ollama binary not found. Run: bash scripts/install.sh" >&2
+  exit 1
+fi
+
+cmd="${1:-}"
+
+banner() {
+  cat <<'EOF'
+ _____ _ _       _____ _
+| ____| | | ___ |  ___|(_)_   _____
+|  _| | | |/ _ \| |_   | \ \ / / _ \
+| |___| | | (_) |  _|  | |\ V /  __/
+|_____|_|_|\___/|_|    |_| \_/ \___|
+  Your LLM · powered by Ollama · FRC7 ready
+EOF
+}
+
+case "${cmd}" in
+  ""|-h|--help|help)
+    banner
+    echo ""
+    echo "Usage: ellofive <command> [args...]"
+    echo ""
+    echo "Commands:"
+    echo "  serve              Start the ElloFive runtime (Ollama server)"
+    echo "  run <model>        Chat with a model"
+    echo "  create <name> -f   Create your own LLM from a Modelfile"
+    echo "  pull <model>       Download a base model"
+    echo "  list               List installed models"
+    echo "  show <model>       Show model details"
+    echo "  rm <model>         Remove a model"
+    echo "  frc <file.frcl>    Run an FRC7 FRCL script via ElloFive"
+    echo "  setup              Build the default ElloFive custom LLM"
+    echo "  version            Show ElloFive / Ollama version"
+    echo ""
+    echo "Any other command is forwarded to ollama."
+    exit 0
+    ;;
+  version|--version|-v)
+    banner
+    echo ""
+    echo "ElloFive 1.0.0"
+    "${OLLAMA_BIN}" --version
+    exit 0
+    ;;
+  setup)
+    ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+    exec bash "${ROOT}/scripts/setup-model.sh"
+    ;;
+  frc)
+    shift
+    ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+    exec node "${ROOT}/frc/cli.js" "$@"
+    ;;
+  list|ls)
+    echo "ElloFive models:"
+    exec "${OLLAMA_BIN}" list
+    ;;
+  *)
+    exec "${OLLAMA_BIN}" "$@"
+    ;;
+esac

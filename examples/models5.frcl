@@ -1,0 +1,5 @@
+use model models5
+
+input "Hello FRC Distributed System — reply as the models5 node on ElloFive."
+
+print result

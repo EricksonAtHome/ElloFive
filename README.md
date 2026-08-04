@@ -1,1 +1,80 @@
 # ElloFive
+
+**ElloFive** is your own local LLM runtime. It installs [Ollama](https://ollama.com), brands the CLI as `ellofive`, and runs real inference for [FRC7](https://github.com/EricksonAtHome/FRC7) FRCL scripts.
+
+## What you get
+
+| Piece | Purpose |
+| --- | --- |
+| `ellofive` CLI | Ollama, renamed and wrapped for ElloFive |
+| `ellofive` model | Your custom LLM (system prompt + params on `llama3.2:1b`) |
+| `models5` model | FRC7-compatible alias used by FRC demos |
+| `frc/` | FRCL parser + executor that calls ElloFive instead of stub strings |
+| `examples/*.frcl` | FRC7-style scripts ready to run locally |
+
+## Quick start
+
+```bash
+# 1) Install Ollama + ElloFive CLI
+bash scripts/install.sh
+
+# 2) Start the runtime (separate terminal if needed)
+ellofive serve
+
+# 3) Build your LLM + FRC7 alias
+ellofive setup
+# or: npm run setup
+
+# 4) Chat
+ellofive run ellofive
+
+# 5) Run FRC7 FRCL against your LLM
+ellofive frc examples/hello.frcl
+ellofive frc examples/frc7-demo.frcl
+```
+
+## Test
+
+```bash
+npm install
+npm test
+```
+
+## FRC7 API bridge
+
+Start a small Express API that mirrors FRC7-style `POST /run/:model`:
+
+```bash
+npm run api
+curl -s -X POST http://127.0.0.1:3000/run/models5 \
+  -H 'Content-Type: application/json' \
+  -d '{"input":"Hello from ElloFive"}'
+```
+
+## Customize your LLM
+
+Edit `models/Modelfile`, then recreate:
+
+```bash
+ellofive create ellofive -f models/Modelfile
+# optional stronger base model:
+ELLOFIVE_BASE_MODEL=llama3.2:3b ellofive setup
+```
+
+## Project layout
+
+```
+bin/ellofive           # branded CLI
+models/Modelfile       # your ElloFive LLM definition
+models/Modelfile.models5
+frc/                   # FRC7 FRCL → ElloFive executor + API
+examples/              # sample .frcl scripts
+scripts/install.sh
+scripts/setup-model.sh
+scripts/test-ellofive.sh
+```
+
+## Credits
+
+- Runtime engine: [Ollama](https://ollama.com)
+- FRCL / distributed AI patterns: [EricksonAtHome/FRC7](https://github.com/EricksonAtHome/FRC7)

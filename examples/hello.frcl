@@ -1,0 +1,6 @@
+# ElloFive + FRC7 hello script
+use model ellofive
+
+input "In one short sentence, introduce yourself as ElloFive and mention FRC7."
+
+print result
