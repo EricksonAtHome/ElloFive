@@ -2,6 +2,14 @@
 
 **ElloFive** is your own local LLM runtime. It installs [Ollama](https://ollama.com), brands the CLI as `ellofive`, and runs real inference for [FRC7](https://github.com/EricksonAtHome/FRC7) FRCL scripts.
 
+## Test demo
+
+Live run of `ellofive version`, model list, chat, and FRC7 FRCL scripts (`hello.frcl` + `models5.frcl`):
+
+[![ElloFive test demo](docs/ellofive-test-demo.gif)](docs/ellofive-test-demo.mp4)
+
+[Watch full demo (MP4)](docs/ellofive-test-demo.mp4) · [Raw video](https://github.com/EricksonAtHome/ElloFive/raw/main/docs/ellofive-test-demo.mp4)
+
 ## What you get
 
 | Piece | Purpose |
@@ -69,6 +77,7 @@ models/Modelfile       # your ElloFive LLM definition
 models/Modelfile.models5
 frc/                   # FRC7 FRCL → ElloFive executor + API
 examples/              # sample .frcl scripts
+docs/                  # test demo video + GIF
 scripts/install.sh
 scripts/setup-model.sh
 scripts/test-ellofive.sh
