@@ -41,6 +41,7 @@ case "${cmd}" in
     echo "  frc <file.frcl>    Run an FRC7 FRCL script via ElloFive"
     echo "  dl|deepfakes       Deep learning toolkit (yeahreum/DeepFakes)"
     echo "  setup              Build the default ElloFive custom LLM"
+    echo "  setup-all          Full auto install (LLM + DeepFakes)"
     echo "  version            Show ElloFive / Ollama version"
     echo ""
     echo "Any other command is forwarded to ollama."
@@ -49,7 +50,7 @@ case "${cmd}" in
   version|--version|-v)
     banner
     echo ""
-    echo "ElloFive 1.0.0"
+    echo "ElloFive 1.1.0"
     "${OLLAMA_BIN}" --version
     if [[ -f "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/deeplearning/DeepFakes/faceswap.py" ]]; then
       echo "Deep Learning: DeepFakes (https://github.com/yeahreum/DeepFakes.git)"
@@ -60,9 +61,22 @@ case "${cmd}" in
     ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
     exec bash "${ROOT}/scripts/setup-model.sh"
     ;;
+  setup-all|bootstrap)
+    ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+    exec bash "${ROOT}/scripts/install.sh"
+    ;;
   frc)
     shift
     ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+    # Ensure runtime is up
+    if ! curl -sf "${OLLAMA_HOST}/api/tags" >/dev/null 2>&1; then
+      echo "Starting ElloFive runtime..." >&2
+      nohup "${OLLAMA_BIN}" serve >/tmp/ellofive-serve.log 2>&1 &
+      for _ in $(seq 1 30); do
+        curl -sf "${OLLAMA_HOST}/api/tags" >/dev/null 2>&1 && break
+        sleep 1
+      done
+    fi
     exec node "${ROOT}/frc/cli.js" "$@"
     ;;
   dl|deepfakes|deepfake)

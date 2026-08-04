@@ -14,7 +14,7 @@ fi
 if ! curl -sf "${OLLAMA_HOST}/api/tags" >/dev/null 2>&1; then
   echo "==> Starting ElloFive runtime (ollama serve)..."
   nohup ollama serve >/tmp/ellofive-serve.log 2>&1 &
-  for i in $(seq 1 30); do
+  for _ in $(seq 1 40); do
     if curl -sf "${OLLAMA_HOST}/api/tags" >/dev/null 2>&1; then
       break
     fi
@@ -27,13 +27,12 @@ if ! curl -sf "${OLLAMA_HOST}/api/tags" >/dev/null 2>&1; then
   exit 1
 fi
 
-BASE_MODEL="${ELLOFIVE_BASE_MODEL:-llama3.2:1b}"
+BASE_MODEL="${ELLOFIVE_BASE_MODEL:-llama3.2:3b}"
 echo "==> Ensuring base model ${BASE_MODEL}..."
 ollama pull "${BASE_MODEL}"
 
-# Keep Modelfile FROM line in sync when override is used
 MODELFILE="${ROOT}/models/Modelfile"
-if [[ "${BASE_MODEL}" != "llama3.2:1b" ]]; then
+if ! grep -q "^FROM ${BASE_MODEL}$" "${MODELFILE}"; then
   TMP="$(mktemp)"
   sed "s|^FROM .*|FROM ${BASE_MODEL}|" "${MODELFILE}" > "${TMP}"
   MODELFILE="${TMP}"
@@ -48,6 +47,9 @@ ollama create models5 -f "${ROOT}/models/Modelfile.models5"
 echo ""
 echo "ElloFive models ready:"
 ollama list
+echo ""
+echo "Quick quality check..."
+ollama run ellofive 'Reply in one short sentence: who are you?' || true
 echo ""
 echo "Try: ellofive run ellofive"
 echo "Or:  ellofive frc examples/hello.frcl"

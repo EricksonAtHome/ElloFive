@@ -1,14 +1,14 @@
 /**
  * FRC7-compatible FRCL executor backed by ElloFive (Ollama).
- * Supports the FRCL patterns used in EricksonAtHome/FRC7 demos.
  */
 
-import { generate, getHost } from "./client.js";
+import { generate, getHost, hasModel } from "./client.js";
 
 const MODEL_ALIASES = {
   models5: "models5",
   ellofive: "ellofive",
   "llama3.2:1b": "llama3.2:1b",
+  "llama3.2:3b": "llama3.2:3b",
 };
 
 function stripQuotes(value) {
@@ -21,9 +21,6 @@ function resolveModel(name) {
   return MODEL_ALIASES[key] || key || "ellofive";
 }
 
-/**
- * Parse a minimal FRCL script into structured steps.
- */
 export function parseFrcl(script) {
   const lines = String(script || "")
     .split("\n")
@@ -65,6 +62,20 @@ export function parseFrcl(script) {
       }
       const inline = line.match(/input\s+["'](.+?)["']/);
       if (inline?.[1]) context.input = inline[1];
+
+      // Support block form:
+      // run model models5 {
+      //   input "..."
+      // }
+      if (line.includes("{") && !inline) {
+        let j = i + 1;
+        while (j < lines.length && !lines[j].includes("}")) {
+          const inBlock = lines[j].match(/input\s+["'](.+?)["']/);
+          if (inBlock?.[1]) context.input = inBlock[1];
+          j++;
+        }
+        i = j;
+      }
       continue;
     }
 
@@ -105,15 +116,32 @@ export function parseFrcl(script) {
 
 export async function executeScript(script, { host = getHost() } = {}) {
   const ctx = parseFrcl(script);
-  const model = resolveModel(ctx.model);
+  let model = resolveModel(ctx.model);
   const prompt = ctx.input || "Hello from ElloFive / FRC7";
 
   console.log(`[ENV  ] ${ctx.env}`);
   console.log(`[AI   ] Loading model: ${model}`);
   console.log(`[HOST ] ${host}`);
+
+  if (!(await hasModel(model, host))) {
+    if (model !== "ellofive" && (await hasModel("ellofive", host))) {
+      console.log(`[WARN ] Model ${model} missing — falling back to ellofive`);
+      model = "ellofive";
+    } else {
+      throw new Error(
+        `Model "${model}" not found. Run: ellofive setup`,
+      );
+    }
+  }
+
   console.log(`[EXEC ] Running inference...`);
 
-  const result = await generate({ model, prompt, host });
+  const result = await generate({
+    model,
+    prompt,
+    host,
+    options: { temperature: 0.5 },
+  });
 
   const payload = {
     runtime: "ElloFive",
@@ -125,13 +153,14 @@ export async function executeScript(script, { host = getHost() } = {}) {
     latencyMs: result.latencyMs,
     network: ctx.network,
     docker: ctx.docker,
+    mode: result.mode,
   };
 
   console.log("");
   console.log(" OUTPUT ");
   console.log(payload.output);
   console.log("");
-  console.log(`latency: ${payload.latencyMs}ms`);
+  console.log(`latency: ${payload.latencyMs}ms · mode: ${payload.mode}`);
 
   return payload;
 }

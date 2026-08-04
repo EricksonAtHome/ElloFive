@@ -1,6 +1,6 @@
 {
   "name": "ellofive",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "ElloFive — local LLM runtime (Ollama) with FRC7 FRCL and DeepFakes deep learning",
   "type": "module",
   "bin": {

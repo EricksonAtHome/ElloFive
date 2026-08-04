@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Smoke-test ElloFive + FRC7 FRCL integration
+# Smoke-test ElloFive + FRC7 + DeepFakes
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -18,37 +18,52 @@ echo "==> ElloFive test suite"
 if command -v ollama >/dev/null 2>&1; then ok "ollama installed"; else bad "ollama installed"; fi
 if [[ -x "${ROOT}/bin/ellofive" ]]; then ok "ellofive CLI executable"; else bad "ellofive CLI executable"; fi
 
+if ! curl -sf "${OLLAMA_HOST}/api/tags" >/dev/null 2>&1; then
+  echo "  .... starting runtime"
+  nohup ollama serve >/tmp/ellofive-serve.log 2>&1 &
+  for _ in $(seq 1 30); do
+    curl -sf "${OLLAMA_HOST}/api/tags" >/dev/null 2>&1 && break
+    sleep 1
+  done
+fi
+
 if curl -sf "${OLLAMA_HOST}/api/tags" >/dev/null 2>&1; then
   ok "runtime reachable at ${OLLAMA_HOST}"
 else
   bad "runtime reachable at ${OLLAMA_HOST}"
-  echo "Start with: ellofive serve" >&2
 fi
 
-if ollama list 2>/dev/null | grep -qE '^ellofive\b'; then
-  ok "ellofive model present"
-else
+if ! ollama list 2>/dev/null | grep -qE '^ellofive\b'; then
   echo "  .... creating models via setup"
   bash "${ROOT}/scripts/setup-model.sh"
-  if ollama list 2>/dev/null | grep -qE '^ellofive\b'; then ok "ellofive model present"; else bad "ellofive model present"; fi
 fi
 
+if ollama list 2>/dev/null | grep -qE '^ellofive\b'; then ok "ellofive model present"; else bad "ellofive model present"; fi
 if ollama list 2>/dev/null | grep -qE '^models5\b'; then ok "models5 alias present"; else bad "models5 alias present"; fi
 
-REPLY="$(ollama run ellofive 'Reply with exactly: ELLOFIVE_OK' --verbose=false 2>/dev/null | tr -d '\r' || true)"
-if echo "${REPLY}" | grep -qi 'ELLOFIVE'; then
-  ok "ellofive inference"
+# Quality: identity check via chat API
+CHAT="$(curl -sf "${OLLAMA_HOST}/api/chat" -H 'Content-Type: application/json' -d '{"model":"ellofive","messages":[{"role":"user","content":"In one short sentence, who are you?"}],"stream":false}' || true)"
+if echo "${CHAT}" | grep -qi 'ellofive'; then
+  ok "ellofive chat quality"
 else
-  echo "  reply was: ${REPLY}"
-  bad "ellofive inference"
+  echo "  reply was: ${CHAT}" | head -c 400; echo
+  bad "ellofive chat quality"
 fi
 
 NODE_OUT="$(node "${ROOT}/frc/cli.js" "${ROOT}/examples/hello.frcl" 2>&1 || true)"
-if echo "${NODE_OUT}" | grep -qiE 'output|ElloFive|FRC|result'; then
+if echo "${NODE_OUT}" | grep -qiE 'ElloFive|FRC|OUTPUT'; then
   ok "FRC7 FRCL via ElloFive"
 else
   echo "${NODE_OUT}" | sed 's/^/  | /'
   bad "FRC7 FRCL via ElloFive"
+fi
+
+DEMO_OUT="$(node "${ROOT}/frc/cli.js" "${ROOT}/examples/frc7-demo.frcl" 2>&1 || true)"
+if echo "${DEMO_OUT}" | grep -qiE 'OUTPUT|Docker|FRC|latency'; then
+  ok "FRC7 demo.frcl block parse"
+else
+  echo "${DEMO_OUT}" | sed 's/^/  | /'
+  bad "FRC7 demo.frcl block parse"
 fi
 
 if [[ -f "${ROOT}/deeplearning/DeepFakes/faceswap.py" ]]; then
@@ -63,6 +78,17 @@ if echo "${DL_OUT}" | grep -qi 'yeahreum/DeepFakes'; then
 else
   echo "${DL_OUT}" | sed 's/^/  | /'
   bad "ellofive dl status"
+fi
+
+# DeepFakes functional smoke (auto-setup if needed)
+if [[ "${ELLOFIVE_TEST_DL:-1}" == "1" ]]; then
+  if "${ROOT}/bin/ellofive-dl" smoke >/tmp/ellofive-dl-smoke.log 2>&1; then
+    ok "DeepFakes smoke"
+  else
+    echo "  .... DeepFakes smoke log:"
+    sed -n '1,80p' /tmp/ellofive-dl-smoke.log | sed 's/^/  | /'
+    bad "DeepFakes smoke"
+  fi
 fi
 
 echo ""

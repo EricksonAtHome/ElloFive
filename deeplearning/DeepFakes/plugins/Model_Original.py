@@ -1,11 +1,12 @@
 # Based on the original https://www.reddit.com/r/deepfakes/ code sample + contribs
 #The Yeahreum Core Developers
 
-from keras.models import Model as KerasModel
-from keras.layers import Input, Dense, Flatten, Reshape
-from keras.layers.advanced_activations import LeakyReLU
-from keras.layers.convolutional import Conv2D
-from keras.optimizers import Adam
+from tensorflow.keras.models import Model as KerasModel
+from tensorflow.keras.layers import Input, Dense, Flatten, Reshape, Conv2D, LeakyReLU
+try:
+    from tensorflow.keras.optimizers import Adam
+except Exception:  # TF1-style path
+    from tensorflow.keras.optimizers import Adam
 
 from lib.ModelAE import ModelAE, TrainerAE
 from lib.PixelShuffler import PixelShuffler
@@ -15,7 +16,10 @@ ENCODER_DIM = 1024
 
 class Model(ModelAE):
     def initModel(self):
-        optimizer = Adam(lr=5e-5, beta_1=0.5, beta_2=0.999)
+        try:
+            optimizer = Adam(learning_rate=5e-5, beta_1=0.5, beta_2=0.999)
+        except TypeError:
+            optimizer = Adam(lr=5e-5, beta_1=0.5, beta_2=0.999)
         x = Input(shape=IMAGE_SHAPE)
 
         self.autoencoder_A = KerasModel(x, self.decoder_A(self.encoder(x)))

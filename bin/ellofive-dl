@@ -23,14 +23,32 @@ Usage:
   ellofive dl                 Show status + help
   ellofive dl status          Check install paths / venv
   ellofive dl setup           Create DeepFakes Python venv
+  ellofive dl smoke           Verify imports + faceswap help
   ellofive dl extract ...     Run faceswap extract
   ellofive dl train ...       Run faceswap train
   ellofive dl convert ...     Run faceswap convert
   ellofive dl python ...      Run python inside the DeepFakes venv
-  ellofive dl doctor          Explain deep-learning stack via ElloFive LLM
+  ellofive dl doctor          Explain stack via ElloFive LLM
 
 Responsible use: consenting subjects / lawful research only.
 EOF
+}
+
+ensure_venv() {
+  if [[ ! -x "${VENV}/bin/python" ]]; then
+    echo "DeepFakes venv missing — running setup..." >&2
+    bash "${ROOT}/scripts/setup-deepfakes.sh"
+    if [[ -f "${ROOT}/.ellofive-deepfakes.env" ]]; then
+      # shellcheck disable=SC1091
+      source "${ROOT}/.ellofive-deepfakes.env"
+      DF_ROOT="${ELLOFIVE_DF_ROOT:-$DF_ROOT}"
+      VENV="${ELLOFIVE_DF_VENV:-$VENV}"
+    fi
+  fi
+  if [[ ! -x "${VENV}/bin/python" ]]; then
+    echo "DeepFakes venv still missing after setup." >&2
+    exit 1
+  fi
 }
 
 status() {
@@ -45,7 +63,7 @@ status() {
   if [[ -x "${VENV}/bin/python" ]]; then
     echo "  venv:           ${VENV}"
     "${VENV}/bin/python" - <<'PY' 2>/dev/null || true
-mods = ["cv2", "numpy", "keras", "tensorflow", "face_recognition"]
+mods = ["cv2", "numpy", "keras", "tensorflow", "face_recognition", "tqdm"]
 for m in mods:
     try:
         __import__(m)
@@ -58,13 +76,43 @@ PY
   fi
 }
 
+smoke() {
+  ensure_venv
+  echo "==> DeepFakes smoke test"
+  "${VENV}/bin/python" - <<PY
+import sys
+sys.path.insert(0, r"${DF_ROOT}")
+import cv2, numpy, tqdm, keras, tensorflow
+print("imports: OK")
+print("opencv:", cv2.__version__)
+print("numpy:", numpy.__version__)
+print("keras:", keras.__version__)
+print("tensorflow:", tensorflow.__version__)
+PY
+  cd "${DF_ROOT}"
+  if "${VENV}/bin/python" faceswap.py -h 2>&1 | tee /tmp/ellofive-df-smoke.txt | grep -qiE 'extract|train|convert'; then
+    echo "faceswap help: OK"
+  else
+    echo "faceswap help: FAILED" >&2
+    sed -n '1,60p' /tmp/ellofive-df-smoke.txt >&2 || true
+    exit 1
+  fi
+  for sub in extract train convert; do
+    if "${VENV}/bin/python" faceswap.py "${sub}" -h >/tmp/ellofive-df-${sub}.txt 2>&1; then
+      echo "faceswap ${sub} -h: OK"
+    else
+      echo "faceswap ${sub} -h: FAILED" >&2
+      sed -n '1,40p' "/tmp/ellofive-df-${sub}.txt" >&2 || true
+      exit 1
+    fi
+  done
+  echo "DeepFakes smoke: PASS"
+}
+
 run_faceswap() {
   local sub="$1"
   shift || true
-  if [[ ! -x "${VENV}/bin/python" ]]; then
-    echo "DeepFakes venv missing. Run: ellofive dl setup" >&2
-    exit 1
-  fi
+  ensure_venv
   if [[ ! -f "${DF_ROOT}/faceswap.py" ]]; then
     echo "faceswap.py not found in ${DF_ROOT}" >&2
     exit 1
@@ -86,15 +134,15 @@ case "${cmd}" in
   setup)
     exec bash "${ROOT}/scripts/setup-deepfakes.sh"
     ;;
+  smoke)
+    smoke
+    ;;
   extract|train|convert)
     run_faceswap "$@"
     ;;
   python)
     shift || true
-    if [[ ! -x "${VENV}/bin/python" ]]; then
-      echo "DeepFakes venv missing. Run: ellofive dl setup" >&2
-      exit 1
-    fi
+    ensure_venv
     exec "${VENV}/bin/python" "$@"
     ;;
   doctor)

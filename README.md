@@ -15,7 +15,7 @@ Live run of `ellofive version`, model list, chat, and FRC7 FRCL scripts (`hello.
 | Piece | Purpose |
 | --- | --- |
 | `ellofive` CLI | Ollama, renamed and wrapped for ElloFive |
-| `ellofive` model | Your custom LLM (system prompt + params on `llama3.2:1b`) |
+| `ellofive` model | Your custom LLM (system prompt + params on `llama3.2:3b`) |
 | `models5` model | FRC7-compatible alias used by FRC demos |
 | `frc/` | FRCL parser + executor that calls ElloFive instead of stub strings |
 | `examples/*.frcl` | FRC7-style scripts ready to run locally |
@@ -24,23 +24,24 @@ Live run of `ellofive version`, model list, chat, and FRC7 FRCL scripts (`hello.
 ## Quick start
 
 ```bash
-# 1) Install Ollama + ElloFive CLI
+# Full automatic install (Ollama + LLM + DeepFakes)
 bash scripts/install.sh
+# or: ellofive setup-all
 
-# 2) Start the runtime (separate terminal if needed)
-ellofive serve
-
-# 3) Build your LLM + FRC7 alias
-ellofive setup
-# or: npm run setup
-
-# 4) Chat
+# Chat with your LLM (llama3.2:3b based)
 ellofive run ellofive
 
-# 5) Run FRC7 FRCL against your LLM
+# Run FRC7 FRCL
 ellofive frc examples/hello.frcl
 ellofive frc examples/frc7-demo.frcl
+
+# Deep learning toolkit
+ellofive dl smoke
+ellofive dl extract -h
 ```
+
+Skip auto pieces if needed:
+`ELLOFIVE_AUTO_SETUP_LLM=0 ELLOFIVE_AUTO_SETUP_DL=0 bash scripts/install.sh`
 
 ## Test
 
