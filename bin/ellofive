@@ -20,7 +20,7 @@ banner() {
 |  _| | | |/ _ \| |_   | \ \ / / _ \
 | |___| | | (_) |  _|  | |\ V /  __/
 |_____|_|_|\___/|_|    |_| \_/ \___|
-  Your LLM · powered by Ollama · FRC7 ready
+  Your LLM · Ollama · FRC7 · Deep Learning
 EOF
 }
 
@@ -39,6 +39,7 @@ case "${cmd}" in
     echo "  show <model>       Show model details"
     echo "  rm <model>         Remove a model"
     echo "  frc <file.frcl>    Run an FRC7 FRCL script via ElloFive"
+    echo "  dl|deepfakes       Deep learning toolkit (yeahreum/DeepFakes)"
     echo "  setup              Build the default ElloFive custom LLM"
     echo "  version            Show ElloFive / Ollama version"
     echo ""
@@ -50,6 +51,9 @@ case "${cmd}" in
     echo ""
     echo "ElloFive 1.0.0"
     "${OLLAMA_BIN}" --version
+    if [[ -f "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/deeplearning/DeepFakes/faceswap.py" ]]; then
+      echo "Deep Learning: DeepFakes (https://github.com/yeahreum/DeepFakes.git)"
+    fi
     exit 0
     ;;
   setup)
@@ -60,6 +64,11 @@ case "${cmd}" in
     shift
     ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
     exec node "${ROOT}/frc/cli.js" "$@"
+    ;;
+  dl|deepfakes|deepfake)
+    shift || true
+    ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+    exec bash "${ROOT}/bin/ellofive-dl" "$@"
     ;;
   list|ls)
     echo "ElloFive models:"

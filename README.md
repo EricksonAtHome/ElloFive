@@ -1,6 +1,6 @@
 # ElloFive
 
-**ElloFive** is your own local LLM runtime. It installs [Ollama](https://ollama.com), brands the CLI as `ellofive`, and runs real inference for [FRC7](https://github.com/EricksonAtHome/FRC7) FRCL scripts.
+**ElloFive** is your own local LLM runtime. It installs [Ollama](https://ollama.com), brands the CLI as `ellofive`, runs real inference for [FRC7](https://github.com/EricksonAtHome/FRC7) FRCL scripts, and includes deep learning via [yeahreum/DeepFakes](https://github.com/yeahreum/DeepFakes).
 
 ## Test demo
 
@@ -19,6 +19,7 @@ Live run of `ellofive version`, model list, chat, and FRC7 FRCL scripts (`hello.
 | `models5` model | FRC7-compatible alias used by FRC demos |
 | `frc/` | FRCL parser + executor that calls ElloFive instead of stub strings |
 | `examples/*.frcl` | FRC7-style scripts ready to run locally |
+| `deeplearning/DeepFakes` | Deep learning faceswap toolkit from [yeahreum/DeepFakes](https://github.com/yeahreum/DeepFakes) |
 
 ## Quick start
 
@@ -48,6 +49,23 @@ npm install
 npm test
 ```
 
+## Deep learning (DeepFakes)
+
+ElloFive vendors [yeahreum/DeepFakes](https://github.com/yeahreum/DeepFakes.git) under `deeplearning/DeepFakes` (Keras/TensorFlow face autoencoders: extract → train → convert).
+
+```bash
+# create isolated Python venv for DeepFakes deps
+ellofive dl setup
+# or: npm run setup:deepfakes
+
+ellofive dl status
+ellofive dl extract -h
+ellofive dl train -h
+ellofive dl convert -h
+```
+
+Use only with **consenting** subjects and lawful content. Details: [`deeplearning/README.md`](deeplearning/README.md).
+
 ## FRC7 API bridge
 
 Start a small Express API that mirrors FRC7-style `POST /run/:model`:
@@ -73,13 +91,16 @@ ELLOFIVE_BASE_MODEL=llama3.2:3b ellofive setup
 
 ```
 bin/ellofive           # branded CLI
+bin/ellofive-dl        # deep learning bridge
 models/Modelfile       # your ElloFive LLM definition
 models/Modelfile.models5
 frc/                   # FRC7 FRCL → ElloFive executor + API
+deeplearning/DeepFakes # yeahreum/DeepFakes deep learning toolkit
 examples/              # sample .frcl scripts
 docs/                  # test demo video + GIF
 scripts/install.sh
 scripts/setup-model.sh
+scripts/setup-deepfakes.sh
 scripts/test-ellofive.sh
 ```
 
@@ -87,3 +108,4 @@ scripts/test-ellofive.sh
 
 - Runtime engine: [Ollama](https://ollama.com)
 - FRCL / distributed AI patterns: [EricksonAtHome/FRC7](https://github.com/EricksonAtHome/FRC7)
+- Deep learning faceswap: [yeahreum/DeepFakes](https://github.com/yeahreum/DeepFakes) (MIT)

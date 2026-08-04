@@ -1,0 +1,113 @@
+#!/usr/bin/env bash
+# ElloFive Deep Learning bridge → yeahreum/DeepFakes
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+DF_ROOT="${ELLOFIVE_DF_ROOT:-${ROOT}/deeplearning/DeepFakes}"
+VENV="${ELLOFIVE_DF_VENV:-${ROOT}/.venv-deepfakes}"
+
+if [[ -f "${ROOT}/.ellofive-deepfakes.env" ]]; then
+  # shellcheck disable=SC1091
+  source "${ROOT}/.ellofive-deepfakes.env"
+  DF_ROOT="${ELLOFIVE_DF_ROOT:-$DF_ROOT}"
+  VENV="${ELLOFIVE_DF_VENV:-$VENV}"
+fi
+
+usage() {
+  cat <<'EOF'
+ElloFive Deep Learning (DeepFakes)
+
+Upstream: https://github.com/yeahreum/DeepFakes.git
+
+Usage:
+  ellofive dl                 Show status + help
+  ellofive dl status          Check install paths / venv
+  ellofive dl setup           Create DeepFakes Python venv
+  ellofive dl extract ...     Run faceswap extract
+  ellofive dl train ...       Run faceswap train
+  ellofive dl convert ...     Run faceswap convert
+  ellofive dl python ...      Run python inside the DeepFakes venv
+  ellofive dl doctor          Explain deep-learning stack via ElloFive LLM
+
+Responsible use: consenting subjects / lawful research only.
+EOF
+}
+
+status() {
+  echo "ElloFive Deep Learning status"
+  echo "  DeepFakes root: ${DF_ROOT}"
+  echo "  Upstream:       https://github.com/yeahreum/DeepFakes.git"
+  if [[ -f "${DF_ROOT}/faceswap.py" ]]; then
+    echo "  faceswap.py:    present"
+  else
+    echo "  faceswap.py:    MISSING"
+  fi
+  if [[ -x "${VENV}/bin/python" ]]; then
+    echo "  venv:           ${VENV}"
+    "${VENV}/bin/python" - <<'PY' 2>/dev/null || true
+mods = ["cv2", "numpy", "keras", "tensorflow", "face_recognition"]
+for m in mods:
+    try:
+        __import__(m)
+        print(f"  python module:  {m} OK")
+    except Exception as e:
+        print(f"  python module:  {m} missing ({e.__class__.__name__})")
+PY
+  else
+    echo "  venv:           not created (run: ellofive dl setup)"
+  fi
+}
+
+run_faceswap() {
+  local sub="$1"
+  shift || true
+  if [[ ! -x "${VENV}/bin/python" ]]; then
+    echo "DeepFakes venv missing. Run: ellofive dl setup" >&2
+    exit 1
+  fi
+  if [[ ! -f "${DF_ROOT}/faceswap.py" ]]; then
+    echo "faceswap.py not found in ${DF_ROOT}" >&2
+    exit 1
+  fi
+  cd "${DF_ROOT}"
+  exec "${VENV}/bin/python" faceswap.py "${sub}" "$@"
+}
+
+cmd="${1:-}"
+case "${cmd}" in
+  ""|-h|--help|help)
+    usage
+    echo ""
+    status
+    ;;
+  status)
+    status
+    ;;
+  setup)
+    exec bash "${ROOT}/scripts/setup-deepfakes.sh"
+    ;;
+  extract|train|convert)
+    run_faceswap "$@"
+    ;;
+  python)
+    shift || true
+    if [[ ! -x "${VENV}/bin/python" ]]; then
+      echo "DeepFakes venv missing. Run: ellofive dl setup" >&2
+      exit 1
+    fi
+    exec "${VENV}/bin/python" "$@"
+    ;;
+  doctor)
+    if command -v ollama >/dev/null 2>&1 && curl -sf "${OLLAMA_HOST:-http://127.0.0.1:11434}/api/tags" >/dev/null 2>&1; then
+      exec ollama run ellofive "In short bullets: explain ElloFive deep learning module based on github.com/yeahreum/DeepFakes — extract, train, convert — and remind about consent/ethical use."
+    else
+      echo "ElloFive LLM runtime not reachable. Start with: ellofive serve" >&2
+      exit 1
+    fi
+    ;;
+  *)
+    echo "Unknown dl command: ${cmd}" >&2
+    usage >&2
+    exit 1
+    ;;
+esac

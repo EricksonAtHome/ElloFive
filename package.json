@@ -1,17 +1,20 @@
 {
   "name": "ellofive",
   "version": "1.0.0",
-  "description": "ElloFive — your own LLM runtime (Ollama rebranded) with FRC7 FRCL orchestration",
+  "description": "ElloFive — local LLM runtime (Ollama) with FRC7 FRCL and DeepFakes deep learning",
   "type": "module",
   "bin": {
     "ellofive": "./bin/ellofive",
-    "ellofive-frc": "./frc/cli.js"
+    "ellofive-frc": "./frc/cli.js",
+    "ellofive-dl": "./bin/ellofive-dl"
   },
   "scripts": {
     "setup": "bash scripts/setup-model.sh",
+    "setup:deepfakes": "bash scripts/setup-deepfakes.sh",
     "install:runtime": "bash scripts/install.sh",
     "serve": "ollama serve",
     "frc": "node frc/cli.js",
+    "dl": "bash bin/ellofive-dl",
     "test": "bash scripts/test-ellofive.sh",
     "api": "node frc/server.js"
   },
@@ -20,7 +23,9 @@
     "ollama",
     "llm",
     "frc7",
-    "frcl"
+    "frcl",
+    "deepfakes",
+    "deep-learning"
   ],
   "license": "MIT",
   "dependencies": {

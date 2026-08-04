@@ -51,6 +51,20 @@ else
   bad "FRC7 FRCL via ElloFive"
 fi
 
+if [[ -f "${ROOT}/deeplearning/DeepFakes/faceswap.py" ]]; then
+  ok "DeepFakes deep learning present"
+else
+  bad "DeepFakes deep learning present"
+fi
+
+DL_OUT="$("${ROOT}/bin/ellofive-dl" status 2>&1 || true)"
+if echo "${DL_OUT}" | grep -qi 'yeahreum/DeepFakes'; then
+  ok "ellofive dl status"
+else
+  echo "${DL_OUT}" | sed 's/^/  | /'
+  bad "ellofive dl status"
+fi
+
 echo ""
 echo "Results: ${pass} passed, ${fail} failed"
 [[ "${fail}" -eq 0 ]]

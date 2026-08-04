@@ -1,0 +1,12 @@
+# ElloFive-friendly dependency set for yeahreum/DeepFakes
+# (upstream requirements.txt pins very old TF/Keras; use this with scripts/setup-deepfakes.sh)
+numpy<2
+opencv-python>=4.5,<4.11
+tqdm
+scikit-image
+h5py
+keras>=2.10,<3
+tensorflow>=2.10,<2.16
+# optional extract stack (needs cmake/build tools for dlib):
+# face_recognition
+# dlib

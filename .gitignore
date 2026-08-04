@@ -3,9 +3,15 @@ npm-debug.log*
 .env
 .env.*
 !.env.example
+.ellofive-deepfakes.env
+.venv-deepfakes/
 .DS_Store
 *.log
 /tmp/
 .ollama/
 dist/
 coverage/
+__pycache__/
+*.pyc
+deeplearning/DeepFakes/**/models/
+deeplearning/DeepFakes/**/data/
