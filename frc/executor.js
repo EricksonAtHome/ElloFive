@@ -127,13 +127,11 @@ export async function executeScript(script, { host = getHost() } = {}) {
     docker: ctx.docker,
   };
 
-  if (ctx.prints || true) {
-    console.log("");
-    console.log(" OUTPUT ");
-    console.log(payload.output);
-    console.log("");
-    console.log(`latency: ${payload.latencyMs}ms`);
-  }
+  console.log("");
+  console.log(" OUTPUT ");
+  console.log(payload.output);
+  console.log("");
+  console.log(`latency: ${payload.latencyMs}ms`);
 
   return payload;
 }
