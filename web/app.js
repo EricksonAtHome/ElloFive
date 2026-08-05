@@ -71,16 +71,19 @@ function ensureActiveChat() {
   return chat;
 }
 
-function renderChatList() {
+function renderChatList(filter = "") {
+  const q = filter.trim().toLowerCase();
   chatList.innerHTML = "";
   for (const chat of chats) {
+    const title = chat.title || "New chat";
+    if (q && !title.toLowerCase().includes(q)) continue;
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = `chat-item${chat.id === activeId ? " active" : ""}`;
-    btn.textContent = chat.title || "New chat";
+    btn.textContent = title;
     btn.addEventListener("click", () => {
       activeId = chat.id;
-      renderChatList();
+      renderChatList(document.getElementById("chat-search")?.value || "");
       renderThread();
       closeRail();
     });
@@ -221,6 +224,26 @@ suggestions?.addEventListener("click", (e) => {
   const btn = e.target.closest("button[data-prompt]");
   if (!btn) return;
   sendMessage(btn.dataset.prompt);
+});
+
+document.getElementById("chat-search")?.addEventListener("input", (e) => {
+  renderChatList(e.target.value);
+});
+
+document.getElementById("share-btn")?.addEventListener("click", async () => {
+  const url = window.location.href;
+  try {
+    await navigator.clipboard.writeText(url);
+    const prev = statusEl.textContent;
+    setStatus(statusEl.dataset.state || "ok", "Link copied");
+    setTimeout(() => setStatus(statusEl.dataset.state || "ok", prev === "Link copied" ? "Online" : prev), 1500);
+  } catch {
+    /* ignore */
+  }
+});
+
+document.getElementById("attach-btn")?.addEventListener("click", () => {
+  promptEl.focus();
 });
 
 startNewChat();
