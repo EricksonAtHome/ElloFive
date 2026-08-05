@@ -61,6 +61,16 @@ curl -s http://127.0.0.1:3000/v1/chat \
 
 ## Test demo
 
+### Ello5 AI mode (UI)
+
+Live chat test on `ellofive api` — dogs question, a small coding task, and “give me practice tasks”:
+
+[![Ello5 AI mode demo](docs/ello5-ai-mode-demo.gif)](docs/ello5-ai-mode-demo.mp4)
+
+[Watch Ello5 AI mode demo (MP4)](docs/ello5-ai-mode-demo.mp4) · [Transcript](docs/ello5-ai-mode-demo-transcript.md)
+
+### CLI / FRC smoke
+
 [![ElloFive test demo](docs/ellofive-test-demo.gif)](docs/ellofive-test-demo.mp4)
 
 [Watch full demo (MP4)](docs/ellofive-test-demo.mp4)
