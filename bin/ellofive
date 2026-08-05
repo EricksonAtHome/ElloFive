@@ -77,7 +77,7 @@ case "${cmd}" in
     echo ""
     echo "Commands:"
     echo "  serve              Start Ollama runtime (→ ft.svr.ello5.com)"
-    echo "  api|ui|web         Ello5 AI mode API + UI (ai / api.ello5.com)"
+    echo "  api|ui|web         Elloten UI + API (Ello5 model · ai/api.ello5.com)"
     echo "  chat [prompt]      Elite Coding chat (Pro + local memory)"
     echo "  fast [prompt]      Fast low-latency chat"
     echo "  ask <prompt>       Alias for chat with prompt"
@@ -90,7 +90,7 @@ case "${cmd}" in
     echo "  list               List models"
     echo "  version            Version info"
     echo ""
-    echo "Ello5 (ello5.com) is only an AI mode — see docs/domains.md"
+    echo "Elloten (ello5.com) — UX tool for the Ello5 model — see docs/domains.md"
     exit 0
     ;;
   version|--version|-v)
@@ -98,6 +98,7 @@ case "${cmd}" in
     echo ""
     echo "ElloFive 1.4.0 — Elite Coding System"
     echo "Ello5 AI mode hosts: ai.ello5.com · api.ello5.com · ft.svr.ello5.com"
+    echo "Web UX tool: Elloten · Model: Ello5"
     "${OLLAMA_BIN}" --version
     if [[ -n "${ELLOFIVE_BASE_MODEL:-}" ]]; then
       echo "Pro base : ${ELLOFIVE_BASE_MODEL}"

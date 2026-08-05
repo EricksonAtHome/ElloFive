@@ -44,7 +44,7 @@ if ollama list 2>/dev/null | grep -qE '^ellofive-fast\b'; then ok "ellofive-fast
 
 if [[ -f "${ROOT}/models/elite-coding-system.md" ]]; then ok "elite coding system present"; else bad "elite coding system present"; fi
 if [[ -f "${ROOT}/memory/knowledge-base.md" ]]; then ok "local memory KB present"; else bad "local memory KB present"; fi
-if [[ -f "${ROOT}/web/index.html" && -f "${ROOT}/docs/domains.md" ]]; then ok "Ello5 AI mode UI + domains"; else bad "Ello5 AI mode UI + domains"; fi
+if [[ -f "${ROOT}/web/index.html" && -f "${ROOT}/docs/domains.md" ]]; then ok "Elloten UI + domains"; else bad "Elloten UI + domains"; fi
 
 # Ello5 gateway (API + static UI)
 API_PORT="${ELLOFIVE_TEST_API_PORT:-3099}"
@@ -63,16 +63,16 @@ else
   bad "Ello5 API /health hosts"
 fi
 HOSTS="$(curl -sf "http://127.0.0.1:${API_PORT}/v1/hosts" || true)"
-if echo "${HOSTS}" | grep -q 'ai.ello5.com' && echo "${HOSTS}" | grep -qi 'only an AI mode'; then
+if echo "${HOSTS}" | grep -q 'ai.ello5.com' && echo "${HOSTS}" | grep -qi 'Elloten' && echo "${HOSTS}" | grep -qi 'Ello5'; then
   ok "Ello5 /v1/hosts"
 else
   bad "Ello5 /v1/hosts"
 fi
 UI="$(curl -sf "http://127.0.0.1:${API_PORT}/" || true)"
-if echo "${UI}" | grep -qi 'Ello5' && echo "${UI}" | grep -qi 'AI mode'; then
-  ok "Ello5 UI served"
+if echo "${UI}" | grep -qi 'Elloten' && echo "${UI}" | grep -qi 'Ello5'; then
+  ok "Elloten UI served"
 else
-  bad "Ello5 UI served"
+  bad "Elloten UI served"
 fi
 CHAT_API="$(curl -sf "http://127.0.0.1:${API_PORT}/v1/chat" -H 'Content-Type: application/json' -d '{"message":"Reply with exactly: ok","model":"ellofive-fast"}' || true)"
 if echo "${CHAT_API}" | grep -q '"mode":"Ello5"' && echo "${CHAT_API}" | grep -qiE '"status":"success"|ok'; then

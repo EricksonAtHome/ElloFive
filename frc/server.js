@@ -1,12 +1,12 @@
 /**
- * Ello5 AI mode API + UI gateway.
+ * Elloten UI + Ello5 model API gateway.
  *
  * Hosts (see docs/domains.md):
- *   ai.ello5.com      → UI
+ *   ai.ello5.com      → Elloten (chat UX)
  *   api.ello5.com     → REST
  *   ft.svr.ello5.com  → runtime (proxied separately)
  *
- * Ello5 is only an AI mode — this process serves chat UI + API.
+ * Elloten = web UX tool. Ello5 = AI model / mode.
  */
 
 import express from "express";
@@ -80,9 +80,11 @@ app.get("/health", async (_req, res) => {
     const models = await listModels();
     res.json({
       ok: true,
+      product: "Elloten",
+      model: "Ello5",
       mode: "Ello5",
-      product: "ElloFive",
-      note: "Ello5 is only an AI mode",
+      runtimeProduct: "ElloFive",
+      note: "Elloten is the UX; Ello5 is the AI model",
       hosts: {
         ui: UI_HOST,
         api: API_HOST,
@@ -93,18 +95,26 @@ app.get("/health", async (_req, res) => {
       models: models.map((m) => m.name),
     });
   } catch (err) {
-    res.status(503).json({ ok: false, mode: "Ello5", error: err.message });
+    res.status(503).json({
+      ok: false,
+      product: "Elloten",
+      model: "Ello5",
+      mode: "Ello5",
+      error: err.message,
+    });
   }
 });
 
 app.get("/v1/hosts", (_req, res) => {
   res.json({
+    product: "Elloten",
+    model: "Ello5",
     mode: "Ello5",
     domain: DOMAIN,
     ui: UI_HOST,
     api: API_HOST,
     runtime: RUNTIME_HOST,
-    note: "Ello5 is only an AI mode on ello5.com",
+    note: "Elloten UX on ello5.com — Ello5 is the AI model",
   });
 });
 
@@ -198,9 +208,9 @@ app.get("*", (req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Ello5 AI mode gateway on http://127.0.0.1:${PORT}`);
-  console.log(`  UI host      : ${UI_HOST}`);
+  console.log(`Elloten (Ello5 model) on http://127.0.0.1:${PORT}`);
+  console.log(`  UI host      : ${UI_HOST}  (Elloten)`);
   console.log(`  API host     : ${API_HOST}`);
   console.log(`  Runtime host : ${RUNTIME_HOST}  (upstream ${getHost()})`);
-  console.log(`  Note         : Ello5 is only an AI mode`);
+  console.log(`  Model        : Ello5`);
 });

@@ -1,22 +1,22 @@
 # Ello5 domain map (`ello5.com`)
 
-**Ello5 is only an AI mode** — not a full product site.  
-`ello5.com` hosts the AI runtime, API, and chat UI. Local tooling stays **ElloFive** (`ellofive` CLI).
+**Elloten** is the web UX tool. **Ello5** is the AI model / mode.  
+`ello5.com` hosts Elloten, the API, and the Ello5 runtime. Local CLI stays **ElloFive** (`ellofive`).
 
 ## Recommended hosts
 
 | Host | Role | Default port (local) |
 | --- | --- | --- |
-| `ai.ello5.com` | **UI/UX** — Ello5 AI mode chat interface | `:3080` (or via Caddy `:443`) |
+| `ai.ello5.com` | **Elloten** — chat UI/UX (ChatGPT × Claude × Lovable mix) | `:3080` (or via Caddy `:443`) |
 | `api.ello5.com` | **API** — REST for chat / FRC `/run` | `:3000` |
-| `ft.svr.ello5.com` | **Runtime** — model serve / inference (Ollama) | `:11434` |
+| `ft.svr.ello5.com` | **Runtime** — Ello5 model serve / inference (Ollama) | `:11434` |
 | `ello5.com` | Apex → redirect to `ai.ello5.com` | — |
 
 ### Why this layout
 
-- **`ft.svr`** = front tier on the **server fleet** (`*.svr.ello5.com`). That is where the AI actually runs.
+- **`ft.svr`** = front tier on the **server fleet** (`*.svr.ello5.com`). That is where Ello5 runs.
 - **`api`** stays short and public-facing for clients and integrations.
-- **`ai`** is the human UI for the Ello5 AI mode only.
+- **`ai`** serves **Elloten**, the human chat workspace for Ello5.
 
 ## Optional server-fleet hosts
 

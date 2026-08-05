@@ -2,7 +2,7 @@
 
 Private local software-engineering AI on [Ollama](https://ollama.com), with [FRC7](https://github.com/EricksonAtHome/FRC7) FRCL, [DeepFakes](https://github.com/yeahreum/DeepFakes) deep learning, and an on-disk knowledge base.
 
-**Ello5** (`ello5.com`) is **only an AI mode** — UI + API + runtime hosts. Local CLI stays `ellofive`.
+**Elloten** is the chat UX on `ello5.com`. **Ello5** is the AI model. Local CLI stays `ellofive`.
 
 ## Elite Coding System
 
@@ -36,16 +36,16 @@ ellofive memory show
 ellofive frc examples/hello.frcl
 ellofive dl smoke
 
-# Ello5 AI mode (UI + API)
+# Elloten UI + Ello5 API
 ellofive api
-# → http://127.0.0.1:3000  (chat UI + /v1/chat + /run/:model)
+# → http://127.0.0.1:3000  (Elloten chat + /v1/chat + /run/:model)
 ```
 
 ## Ello5 domains (`ello5.com`)
 
 | Host | Role |
 | --- | --- |
-| `ai.ello5.com` | AI mode UI/UX |
+| `ai.ello5.com` | Elloten chat UI/UX |
 | `api.ello5.com` | REST API (`/v1/chat`, `/run/:model`) |
 | `ft.svr.ello5.com` | Runtime front-tier (model serve) |
 | `ello5.com` | Redirect → `ai.ello5.com` |
@@ -61,13 +61,13 @@ curl -s http://127.0.0.1:3000/v1/chat \
 
 ## Test demo
 
-### Ello5 AI mode (UI)
+### Elloten UI (Ello5 model)
 
-Live chat test on `ellofive api` — dogs question, a small coding task, and “give me practice tasks”:
+Live chat test in **Elloten** — dogs question, a small coding task, and practice tasks:
 
-[![Ello5 AI mode demo](docs/ello5-ai-mode-demo.gif)](docs/ello5-ai-mode-demo.mp4)
+[![Elloten / Ello5 demo](docs/ello5-ai-mode-demo.gif)](docs/ello5-ai-mode-demo.mp4)
 
-[Watch Ello5 AI mode demo (MP4)](docs/ello5-ai-mode-demo.mp4) · [Transcript](docs/ello5-ai-mode-demo-transcript.md)
+[Watch Elloten demo (MP4)](docs/ello5-ai-mode-demo.mp4) · [Transcript](docs/ello5-ai-mode-demo-transcript.md)
 
 ### CLI / FRC smoke
 
@@ -83,8 +83,8 @@ Live chat test on `ellofive api` — dogs question, a small coding task, and “
 | `ellofive` / `ellofive chat` | Pro chat with local memory injection |
 | `ellofive memory` | Private on-disk knowledge base |
 | `frc/` | FRCL → real local inference |
-| `web/` | Ello5 AI mode UI |
-| `ellofive api` | Gateway for `ai` / `api.ello5.com` |
+| `web/` | **Elloten** chat UX (Ello5 model) |
+| `ellofive api` | Elloten + API gateway for `ai` / `api.ello5.com` |
 | `deeplearning/DeepFakes` | Deep learning toolkit |
 | `memory/knowledge-base.md` | Durable preferences & decisions |
 
