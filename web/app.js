@@ -1,6 +1,5 @@
 /**
- * Elloten — chat UX for the Ello5 model.
- * Layout cues: ChatGPT sidebar + Claude reading + Lovable polish.
+ * Elloten — clean ChatGPT-like UX for the Ello5 model.
  */
 
 const statusEl = document.getElementById("status");
@@ -34,8 +33,8 @@ function uid() {
 }
 
 function modelDisplayName(value = modelEl.value) {
-  if (value === "ellofive-fast") return "Ello5 · Fast";
-  if (value === "models5") return "Ello5 · models5";
+  if (value === "ellofive-fast") return "Ello5 Fast";
+  if (value === "models5") return "Ello5 models5";
   return "Ello5";
 }
 
@@ -57,7 +56,7 @@ function openRail() {
 
 function autosize() {
   promptEl.style.height = "auto";
-  promptEl.style.height = `${Math.min(promptEl.scrollHeight, 144)}px`;
+  promptEl.style.height = `${Math.min(promptEl.scrollHeight, 140)}px`;
 }
 
 function ensureActiveChat() {
@@ -71,19 +70,16 @@ function ensureActiveChat() {
   return chat;
 }
 
-function renderChatList(filter = "") {
-  const q = filter.trim().toLowerCase();
+function renderChatList() {
   chatList.innerHTML = "";
   for (const chat of chats) {
-    const title = chat.title || "New chat";
-    if (q && !title.toLowerCase().includes(q)) continue;
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = `chat-item${chat.id === activeId ? " active" : ""}`;
-    btn.textContent = title;
+    btn.textContent = chat.title || "New chat";
     btn.addEventListener("click", () => {
       activeId = chat.id;
-      renderChatList(document.getElementById("chat-search")?.value || "");
+      renderChatList();
       renderThread();
       closeRail();
     });
@@ -94,6 +90,7 @@ function renderChatList(filter = "") {
 function showWelcome(show) {
   welcome.hidden = !show;
   threadWrap.hidden = show;
+  if (suggestions) suggestions.hidden = !show;
 }
 
 function appendMessageNode(role, text, pending = false) {
@@ -149,7 +146,7 @@ async function sendMessage(text) {
   chat.messages.push({ role: "user", content: text });
   showWelcome(false);
   appendMessageNode("user", text);
-  const pending = appendMessageNode("assistant", "Ello5 is thinking", true);
+  const pending = appendMessageNode("assistant", "Thinking", true);
   sendBtn.disabled = true;
   if (modelLabel) modelLabel.textContent = modelDisplayName();
 
@@ -224,26 +221,6 @@ suggestions?.addEventListener("click", (e) => {
   const btn = e.target.closest("button[data-prompt]");
   if (!btn) return;
   sendMessage(btn.dataset.prompt);
-});
-
-document.getElementById("chat-search")?.addEventListener("input", (e) => {
-  renderChatList(e.target.value);
-});
-
-document.getElementById("share-btn")?.addEventListener("click", async () => {
-  const url = window.location.href;
-  try {
-    await navigator.clipboard.writeText(url);
-    const prev = statusEl.textContent;
-    setStatus(statusEl.dataset.state || "ok", "Link copied");
-    setTimeout(() => setStatus(statusEl.dataset.state || "ok", prev === "Link copied" ? "Online" : prev), 1500);
-  } catch {
-    /* ignore */
-  }
-});
-
-document.getElementById("attach-btn")?.addEventListener("click", () => {
-  promptEl.focus();
 });
 
 startNewChat();

@@ -3,90 +3,58 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Elloten — powered by Ello5</title>
-    <meta
-      name="description"
-      content="Elloten is the soft white chat UX for the Ello5 model."
-    />
+    <title>Elloten — Ello5</title>
+    <meta name="description" content="Elloten — clean chat UI for the Ello5 model." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <div class="aurora" aria-hidden="true"></div>
-
     <div class="app">
       <aside class="rail" id="rail" aria-label="Sidebar">
         <div class="rail-top">
-          <a class="brand" href="/" aria-label="Elloten home">
-            <span class="brand-mark" aria-hidden="true"></span>
-            <span class="brand-name">Elloten</span>
-          </a>
-          <button type="button" class="btn-new" id="new-chat" title="New chat">
-            <span class="plus" aria-hidden="true">+</span>
-            New chat
+          <button type="button" class="btn-new" id="new-chat">
+            <span aria-hidden="true">+</span> New chat
           </button>
-          <label class="search-wrap">
-            <span class="sr-only">Search chats</span>
-            <input type="search" id="chat-search" placeholder="Search chats" autocomplete="off" />
-          </label>
         </div>
         <nav class="rail-chats" id="chat-list" aria-label="Chats"></nav>
         <div class="rail-foot">
-          <div class="model-chip" title="Active model">
-            <span class="dot" id="status-dot" data-state="loading"></span>
-            <span>Model · <strong id="model-label">Ello5</strong></span>
+          <div class="rail-user">
+            <span class="avatar-sm" aria-hidden="true">E</span>
+            <div>
+              <div class="rail-user-name">Elloten</div>
+              <div class="rail-user-sub">
+                <span class="dot" id="status-dot" data-state="loading"></span>
+                <span id="model-label">Ello5</span>
+              </div>
+            </div>
           </div>
-          <p class="rail-note">Elloten workspace · Ello5 model</p>
         </div>
       </aside>
 
       <div class="shell">
         <header class="topbar">
-          <button type="button" class="icon-btn mobile-only" id="toggle-rail" aria-label="Menu">
-            ☰
-          </button>
-          <div class="topbar-title">
-            <span class="product">Elloten</span>
-            <span class="badge">Ello5</span>
-          </div>
-          <div class="topbar-actions">
-            <span id="status" class="status" data-state="loading">Connecting…</span>
-            <button type="button" class="btn-ghost" id="share-btn">Share</button>
-          </div>
+          <button type="button" class="icon-btn mobile-only" id="toggle-rail" aria-label="Menu">☰</button>
+          <label class="model-wrap">
+            <select id="model" name="model" aria-label="Model">
+              <option value="ellofive" selected>Ello5</option>
+              <option value="ellofive-fast">Ello5 Fast</option>
+              <option value="models5">Ello5 models5</option>
+            </select>
+          </label>
+          <span id="status" class="status" data-state="loading">…</span>
         </header>
 
-        <main class="stage" id="stage">
+        <main class="stage">
           <section class="welcome" id="welcome">
             <div class="welcome-inner">
-              <div class="orb" aria-hidden="true"></div>
-              <p class="welcome-kicker">Welcome to Elloten</p>
-              <h1 class="welcome-brand">What would you like to work on?</h1>
-              <p class="welcome-sub">
-                Soft workspace for <strong>Ello5</strong> — ask anything, or describe a task.
-              </p>
-              <div class="suggestions" id="suggestions">
-                <button type="button" class="pill" data-prompt="What makes dogs good companions? Answer in 2 short sentences.">
-                  <span class="pill-ico" aria-hidden="true">◎</span>
-                  Ask Ello5 about dogs
-                </button>
-                <button type="button" class="pill" data-prompt="Write a tiny Python function is_even(n) with a one-line docstring. Under 8 lines.">
-                  <span class="pill-ico" aria-hidden="true">⌘</span>
-                  Tiny Python helper
-                </button>
-                <button type="button" class="pill" data-prompt="Give me 5 small coding tasks I can practice today. Number them briefly.">
-                  <span class="pill-ico" aria-hidden="true">☰</span>
-                  Practice task list
-                </button>
-                <button type="button" class="pill" data-prompt="Review this idea: a secure FastAPI /health endpoint with tests. Outline the files and risks.">
-                  <span class="pill-ico" aria-hidden="true">◇</span>
-                  Secure health endpoint
-                </button>
-              </div>
+              <div class="welcome-logo" aria-hidden="true"></div>
+              <h1>Elloten</h1>
+              <p>How can Ello5 help you today?</p>
             </div>
           </section>
 
@@ -95,34 +63,37 @@
           </section>
         </main>
 
-        <footer class="composer-dock">
-          <form class="composer" id="composer">
-            <div class="composer-shell">
-              <button type="button" class="tool-btn" id="attach-btn" aria-label="Add" title="Add">+</button>
-              <label class="sr-only" for="prompt">Message Ello5</label>
-              <textarea
-                id="prompt"
-                name="prompt"
-                rows="1"
-                placeholder="Ask anything, or describe a task…"
-                required
-              ></textarea>
-              <label class="model-select-wrap">
-                <span class="sr-only">Model</span>
-                <select id="model" name="model" aria-label="Model">
-                  <option value="ellofive" selected>Ello5 · Pro</option>
-                  <option value="ellofive-fast">Ello5 · Fast</option>
-                  <option value="models5">Ello5 · models5</option>
-                </select>
-              </label>
-              <button type="submit" class="send-btn" id="send" aria-label="Send">
-                <span aria-hidden="true">↑</span>
+        <footer class="dock">
+          <div class="dock-inner">
+            <div class="suggestions" id="suggestions">
+              <button type="button" data-prompt="What makes dogs good companions? Answer in 2 short sentences.">
+                Ask about dogs
+              </button>
+              <button type="button" data-prompt="Write a tiny Python function is_even(n) with a one-line docstring. Under 8 lines.">
+                Write a Python helper
+              </button>
+              <button type="button" data-prompt="Give me 5 small coding tasks I can practice today. Number them briefly.">
+                Suggest practice tasks
+              </button>
+              <button type="button" data-prompt="Review this idea: a secure FastAPI /health endpoint with tests. Outline the files and risks.">
+                Secure health endpoint
               </button>
             </div>
-            <p class="composer-hint">
-              Elloten · Ello5 · <code id="api-host">api.ello5.com</code>
+
+            <form class="composer" id="composer">
+              <label class="sr-only" for="prompt">Message</label>
+              <textarea
+                id="prompt"
+                rows="1"
+                placeholder="Message Ello5…"
+                required
+              ></textarea>
+              <button type="submit" id="send" aria-label="Send">↑</button>
+            </form>
+            <p class="fineprint">
+              Elloten can make mistakes. Model: Ello5 · <span id="api-host">api.ello5.com</span>
             </p>
-          </form>
+          </div>
         </footer>
       </div>
     </div>
