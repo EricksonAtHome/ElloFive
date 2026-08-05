@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+# ElloFive local long-term memory (privacy-first, files on disk)
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+MEM_DIR="${ELLOFIVE_MEMORY_DIR:-${ROOT}/memory}"
+KB="${MEM_DIR}/knowledge-base.md"
+LOG="${MEM_DIR}/sessions.md"
+
+mkdir -p "${MEM_DIR}"
+[[ -f "${KB}" ]] || printf '# ElloFive local knowledge base\n\n' > "${KB}"
+[[ -f "${LOG}" ]] || printf '# Session notes\n\n' > "${LOG}"
+
+usage() {
+  cat <<'EOF'
+ElloFive memory (local, private)
+
+  ellofive memory list
+  ellofive memory show
+  ellofive memory add "note text"
+  ellofive memory prefer "preference"
+  ellofive memory decide "architecture decision"
+  ellofive memory clear-sessions
+EOF
+}
+
+cmd="${1:-list}"
+shift || true
+
+case "${cmd}" in
+  -h|--help|help) usage ;;
+  list)
+    echo "Memory dir: ${MEM_DIR}"
+    ls -la "${MEM_DIR}"
+    ;;
+  show)
+    echo "===== knowledge-base.md ====="
+    cat "${KB}"
+    if [[ -s "${LOG}" ]]; then
+      echo ""
+      echo "===== sessions.md (tail) ====="
+      tail -n 40 "${LOG}"
+    fi
+    ;;
+  add)
+    note="${*-}"
+    [[ -n "${note}" ]] || { echo "usage: ellofive memory add \"note\"" >&2; exit 1; }
+    printf -- '- %s — %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "${note}" >> "${KB}"
+    echo "Saved to knowledge-base.md"
+    ;;
+  prefer)
+    note="${*-}"
+    [[ -n "${note}" ]] || { echo "usage: ellofive memory prefer \"...\"" >&2; exit 1; }
+    printf -- '- preference: %s — %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "${note}" >> "${KB}"
+    echo "Preference saved"
+    ;;
+  decide)
+    note="${*-}"
+    [[ -n "${note}" ]] || { echo "usage: ellofive memory decide \"...\"" >&2; exit 1; }
+    printf -- '- decision: %s — %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "${note}" >> "${KB}"
+    echo "Decision saved"
+    ;;
+  clear-sessions)
+    printf '# Session notes\n\n' > "${LOG}"
+    echo "Session log cleared (knowledge-base kept)"
+    ;;
+  context)
+    # Print memory block for injection into prompts
+    echo "LOCAL MEMORY / KNOWLEDGE BASE (private, on-disk):"
+    echo
+    cat "${KB}"
+    ;;
+  *)
+    echo "Unknown memory command: ${cmd}" >&2
+    usage >&2
+    exit 1
+    ;;
+esac

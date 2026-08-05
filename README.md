@@ -1,47 +1,60 @@
-# ElloFive
+# ElloFive AI — Elite Coding System
 
-**ElloFive** is your own local LLM runtime. It installs [Ollama](https://ollama.com), brands the CLI as `ellofive`, runs real inference for [FRC7](https://github.com/EricksonAtHome/FRC7) FRCL scripts, and includes deep learning via [yeahreum/DeepFakes](https://github.com/yeahreum/DeepFakes).
+Private local software-engineering AI on [Ollama](https://ollama.com), with [FRC7](https://github.com/EricksonAtHome/FRC7) FRCL, [DeepFakes](https://github.com/yeahreum/DeepFakes) deep learning, and an on-disk knowledge base.
+
+## Elite Coding System
+
+The model personality lives in [`models/elite-coding-system.md`](models/elite-coding-system.md) and is baked into `ellofive` via `scripts/build-modelfile.sh`.
+
+It enforces production-ready code: self-review, SOLID/DRY/KISS, security (OWASP), tests, performance, GPU awareness, streaming, privacy-first defaults, and local memory.
+
+## Models
+
+| Name | Default base | Role |
+| --- | --- | --- |
+| `ellofive` | **qwen2.5:7b** | Elite Coding System (Pro) |
+| `ellofive-fast` | llama3.2:3b | Low latency |
+| `models5` | alias → Pro | FRC7 default |
+
+Override Pro base: `ELLOFIVE_BASE_MODEL=qwen2.5:14b ellofive setup` (needs lots of RAM).
+
+## Quick start
+
+```bash
+bash scripts/install.sh
+# or rebuild models only:
+ellofive setup
+
+ellofive chat
+ellofive chat "Write a secure FastAPI health endpoint with tests"
+
+ellofive memory add "Prefer TypeScript strict mode"
+ellofive memory show
+
+ellofive frc examples/hello.frcl
+ellofive dl smoke
+```
 
 ## Test demo
 
-Live run of `ellofive version`, model list, chat, and FRC7 FRCL scripts (`hello.frcl` + `models5.frcl`):
-
 [![ElloFive test demo](docs/ellofive-test-demo.gif)](docs/ellofive-test-demo.mp4)
 
-[Watch full demo (MP4)](docs/ellofive-test-demo.mp4) · [Raw video](https://github.com/EricksonAtHome/ElloFive/raw/main/docs/ellofive-test-demo.mp4)
+[Watch full demo (MP4)](docs/ellofive-test-demo.mp4)
 
 ## What you get
 
 | Piece | Purpose |
 | --- | --- |
-| `ellofive` CLI | Ollama, renamed and wrapped for ElloFive |
-| `ellofive` model | Your custom LLM (system prompt + params on `llama3.2:3b`) |
-| `models5` model | FRC7-compatible alias used by FRC demos |
-| `frc/` | FRCL parser + executor that calls ElloFive instead of stub strings |
-| `examples/*.frcl` | FRC7-style scripts ready to run locally |
-| `deeplearning/DeepFakes` | Deep learning faceswap toolkit from [yeahreum/DeepFakes](https://github.com/yeahreum/DeepFakes) |
+| `models/elite-coding-system.md` | Elite coding personality source |
+| `ellofive` / `ellofive chat` | Pro chat with local memory injection |
+| `ellofive memory` | Private on-disk knowledge base |
+| `frc/` | FRCL → real local inference |
+| `deeplearning/DeepFakes` | Deep learning toolkit |
+| `memory/knowledge-base.md` | Durable preferences & decisions |
 
-## Quick start
+## Privacy
 
-```bash
-# Full automatic install (Ollama + LLM + DeepFakes)
-bash scripts/install.sh
-# or: ellofive setup-all
-
-# Chat with your LLM (llama3.2:3b based)
-ellofive run ellofive
-
-# Run FRC7 FRCL
-ellofive frc examples/hello.frcl
-ellofive frc examples/frc7-demo.frcl
-
-# Deep learning toolkit
-ellofive dl smoke
-ellofive dl extract -h
-```
-
-Skip auto pieces if needed:
-`ELLOFIVE_AUTO_SETUP_LLM=0 ELLOFIVE_AUTO_SETUP_DL=0 bash scripts/install.sh`
+Default mode is offline/local. Memory stays in `memory/` on your machine. No hidden telemetry.
 
 ## Test
 
@@ -52,61 +65,23 @@ npm test
 
 ## Deep learning (DeepFakes)
 
-ElloFive vendors [yeahreum/DeepFakes](https://github.com/yeahreum/DeepFakes.git) under `deeplearning/DeepFakes` (Keras/TensorFlow face autoencoders: extract → train → convert).
-
 ```bash
-# create isolated Python venv for DeepFakes deps
 ellofive dl setup
-# or: npm run setup:deepfakes
-
-ellofive dl status
-ellofive dl extract -h
-ellofive dl train -h
-ellofive dl convert -h
+ellofive dl smoke
 ```
 
-Use only with **consenting** subjects and lawful content. Details: [`deeplearning/README.md`](deeplearning/README.md).
+Consenting subjects / lawful use only. See [`deeplearning/README.md`](deeplearning/README.md).
 
-## FRC7 API bridge
-
-Start a small Express API that mirrors FRC7-style `POST /run/:model`:
+## Customize the Elite System
 
 ```bash
-npm run api
-curl -s -X POST http://127.0.0.1:3000/run/models5 \
-  -H 'Content-Type: application/json' \
-  -d '{"input":"Hello from ElloFive"}'
-```
-
-## Customize your LLM
-
-Edit `models/Modelfile`, then recreate:
-
-```bash
-ellofive create ellofive -f models/Modelfile
-# optional stronger base model:
-ELLOFIVE_BASE_MODEL=llama3.2:3b ellofive setup
-```
-
-## Project layout
-
-```
-bin/ellofive           # branded CLI
-bin/ellofive-dl        # deep learning bridge
-models/Modelfile       # your ElloFive LLM definition
-models/Modelfile.models5
-frc/                   # FRC7 FRCL → ElloFive executor + API
-deeplearning/DeepFakes # yeahreum/DeepFakes deep learning toolkit
-examples/              # sample .frcl scripts
-docs/                  # test demo video + GIF
-scripts/install.sh
-scripts/setup-model.sh
-scripts/setup-deepfakes.sh
-scripts/test-ellofive.sh
+$EDITOR models/elite-coding-system.md
+bash scripts/build-modelfile.sh
+ellofive setup
 ```
 
 ## Credits
 
-- Runtime engine: [Ollama](https://ollama.com)
-- FRCL / distributed AI patterns: [EricksonAtHome/FRC7](https://github.com/EricksonAtHome/FRC7)
-- Deep learning faceswap: [yeahreum/DeepFakes](https://github.com/yeahreum/DeepFakes) (MIT)
+- Runtime: [Ollama](https://ollama.com)
+- FRCL: [EricksonAtHome/FRC7](https://github.com/EricksonAtHome/FRC7)
+- Deep learning: [yeahreum/DeepFakes](https://github.com/yeahreum/DeepFakes)

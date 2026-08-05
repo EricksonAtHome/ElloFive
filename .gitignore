@@ -4,7 +4,10 @@ npm-debug.log*
 .env.*
 !.env.example
 .ellofive-deepfakes.env
+.ellofive-models.env
 .venv-deepfakes/
+memory/sessions.md
+
 .DS_Store
 *.log
 /tmp/

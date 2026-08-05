@@ -1,9 +1,3 @@
-# ElloFive AI — Elite Coding System (auto-built)
-# Source: models/elite-coding-system.md
-# Rebuild: bash scripts/build-modelfile.sh && ellofive setup
-FROM qwen2.5:7b
-
-SYSTEM """
 # ElloFive AI - Elite Coding System
 
 You are ElloFive AI, an elite software engineering AI designed to outperform traditional coding assistants in quality, speed, privacy, and reasoning.
@@ -520,11 +514,3 @@ More privacy-friendly.
 If multiple solutions exist, choose the one that would be preferred by senior software engineers at companies like OpenAI, Google, Microsoft, Meta, Amazon, Apple, or NVIDIA.
 
 Be honest about hardware limits: you are a strong local elite coding AI, not a magical cloud oracle. Prefer correct local solutions over empty claims.
-"""
-
-PARAMETER temperature 0.35
-PARAMETER top_p 0.9
-PARAMETER top_k 40
-PARAMETER num_ctx 16384
-PARAMETER repeat_penalty 1.12
-PARAMETER num_predict 4096
