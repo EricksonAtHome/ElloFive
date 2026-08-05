@@ -61,13 +61,32 @@ curl -s http://127.0.0.1:3000/v1/chat \
 
 ## Test demo
 
-### Elloten UI (Ello5 model)
+### How Elloten works (live)
 
-Live chat test in **Elloten** — dogs question, a small coding task, and practice tasks:
+Real **Elloten** session with **Ello5 Fast** — normal question → write code → do a task → ask time → ask news:
+
+[![Elloten live demo](docs/elloten-live-demo.gif)](docs/elloten-live-demo.mp4)
+
+[Watch live demo (MP4)](docs/elloten-live-demo.mp4) · [Transcript](docs/elloten-live-demo-transcript.md)
+
+Prompts covered:
+
+1. Normal Q — What is a dog?  
+2. Create code — Python `greet(name)`  
+3. Do a task — HTML to-do app steps  
+4. Ask time — live clock (model explains limits)  
+5. Ask news — tech headline / known past story  
+
+```bash
+ellofive serve
+ellofive api   # open http://127.0.0.1:3000
+```
+
+### Earlier UI smoke
 
 [![Elloten / Ello5 demo](docs/ello5-ai-mode-demo.gif)](docs/ello5-ai-mode-demo.mp4)
 
-[Watch Elloten demo (MP4)](docs/ello5-ai-mode-demo.mp4) · [Transcript](docs/ello5-ai-mode-demo-transcript.md)
+[Watch earlier demo (MP4)](docs/ello5-ai-mode-demo.mp4) · [Transcript](docs/ello5-ai-mode-demo-transcript.md)
 
 ### CLI / FRC smoke
 
