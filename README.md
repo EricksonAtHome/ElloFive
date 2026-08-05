@@ -2,6 +2,8 @@
 
 Private local software-engineering AI on [Ollama](https://ollama.com), with [FRC7](https://github.com/EricksonAtHome/FRC7) FRCL, [DeepFakes](https://github.com/yeahreum/DeepFakes) deep learning, and an on-disk knowledge base.
 
+**Ello5** (`ello5.com`) is **only an AI mode** — UI + API + runtime hosts. Local CLI stays `ellofive`.
+
 ## Elite Coding System
 
 The model personality lives in [`models/elite-coding-system.md`](models/elite-coding-system.md) and is baked into `ellofive` via `scripts/build-modelfile.sh`.
@@ -33,6 +35,28 @@ ellofive memory show
 
 ellofive frc examples/hello.frcl
 ellofive dl smoke
+
+# Ello5 AI mode (UI + API)
+ellofive api
+# → http://127.0.0.1:3000  (chat UI + /v1/chat + /run/:model)
+```
+
+## Ello5 domains (`ello5.com`)
+
+| Host | Role |
+| --- | --- |
+| `ai.ello5.com` | AI mode UI/UX |
+| `api.ello5.com` | REST API (`/v1/chat`, `/run/:model`) |
+| `ft.svr.ello5.com` | Runtime front-tier (model serve) |
+| `ello5.com` | Redirect → `ai.ello5.com` |
+
+Full map + DNS: [`docs/domains.md`](docs/domains.md). Deploy: [`deploy/Caddyfile`](deploy/Caddyfile).
+
+```bash
+# Chat via API
+curl -s http://127.0.0.1:3000/v1/chat \
+  -H 'Content-Type: application/json' \
+  -d '{"message":"Write a secure health endpoint"}'
 ```
 
 ## Test demo
@@ -49,6 +73,8 @@ ellofive dl smoke
 | `ellofive` / `ellofive chat` | Pro chat with local memory injection |
 | `ellofive memory` | Private on-disk knowledge base |
 | `frc/` | FRCL → real local inference |
+| `web/` | Ello5 AI mode UI |
+| `ellofive api` | Gateway for `ai` / `api.ello5.com` |
 | `deeplearning/DeepFakes` | Deep learning toolkit |
 | `memory/knowledge-base.md` | Durable preferences & decisions |
 

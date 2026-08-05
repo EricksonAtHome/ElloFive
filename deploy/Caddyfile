@@ -1,0 +1,37 @@
+# Ello5 AI mode — reverse proxy for ello5.com
+# Ello5 is only an AI mode (UI + API + runtime).
+#
+# Upstream local processes:
+#   API+UI : ellofive api   → 127.0.0.1:3000
+#   Runtime: ellofive serve → 127.0.0.1:11434
+#
+# DNS must point ai / api / ft.svr / apex at this host.
+
+{
+	email {$ELLO5_ACME_EMAIL:ops@ello5.com}
+}
+
+# Apex → AI mode UI
+ello5.com {
+	redir https://ai.ello5.com{uri} permanent
+}
+
+# UI/UX — Ello5 AI mode
+ai.ello5.com {
+	reverse_proxy 127.0.0.1:3000
+}
+
+# Public API
+api.ello5.com {
+	reverse_proxy 127.0.0.1:3000
+}
+
+# Runtime front-tier (Ollama / ElloFive serve)
+ft.svr.ello5.com {
+	reverse_proxy 127.0.0.1:11434
+}
+
+# Optional fleet root
+svr.ello5.com {
+	respond "Ello5 server fleet — use ft.svr.ello5.com for runtime" 200
+}
