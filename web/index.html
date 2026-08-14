@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Elloten — Ello5</title>
+    <meta name="description" content="Elloten — clean chat UI for the Ello5 model." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="rail" id="rail" aria-label="Sidebar">
+        <div class="rail-top">
+          <button type="button" class="btn-new" id="new-chat">
+            <span aria-hidden="true">+</span> New chat
+          </button>
+        </div>
+        <nav class="rail-chats" id="chat-list" aria-label="Chats"></nav>
+        <div class="rail-foot">
+          <div class="rail-user">
+            <span class="avatar-sm" aria-hidden="true">E</span>
+            <div>
+              <div class="rail-user-name">Elloten</div>
+              <div class="rail-user-sub">
+                <span class="dot" id="status-dot" data-state="loading"></span>
+                <span id="model-label">Ello5</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <div class="shell">
+        <header class="topbar">
+          <button type="button" class="icon-btn mobile-only" id="toggle-rail" aria-label="Menu">☰</button>
+          <label class="model-wrap">
+            <select id="model" name="model" aria-label="Model">
+              <option value="ellofive" selected>Ello5</option>
+              <option value="ellofive-fast">Ello5 Fast</option>
+              <option value="models5">Ello5 models5</option>
+            </select>
+          </label>
+          <span id="status" class="status" data-state="loading">…</span>
+        </header>
+
+        <main class="stage">
+          <section class="welcome" id="welcome">
+            <div class="welcome-inner">
+              <div class="welcome-logo" aria-hidden="true"></div>
+              <h1>Elloten</h1>
+              <p>How can Ello5 help you today?</p>
+            </div>
+          </section>
+
+          <section class="thread-wrap" id="thread-wrap" hidden>
+            <div class="thread" id="thread" role="log" aria-live="polite"></div>
+          </section>
+        </main>
+
+        <footer class="dock">
+          <div class="dock-inner">
+            <div class="suggestions" id="suggestions">
+              <button type="button" data-prompt="What makes dogs good companions? Answer in 2 short sentences.">
+                Ask about dogs
+              </button>
+              <button type="button" data-prompt="Write a tiny Python function is_even(n) with a one-line docstring. Under 8 lines.">
+                Write a Python helper
+              </button>
+              <button type="button" data-prompt="Give me 5 small coding tasks I can practice today. Number them briefly.">
+                Suggest practice tasks
+              </button>
+              <button type="button" data-prompt="Review this idea: a secure FastAPI /health endpoint with tests. Outline the files and risks.">
+                Secure health endpoint
+              </button>
+            </div>
+
+            <form class="composer" id="composer">
+              <label class="sr-only" for="prompt">Message</label>
+              <textarea
+                id="prompt"
+                rows="1"
+                placeholder="Message Ello5…"
+                required
+              ></textarea>
+              <button type="submit" id="send" aria-label="Send">↑</button>
+            </form>
+            <p class="fineprint">
+              Elloten can make mistakes. Model: Ello5 · <span id="api-host">api.ello5.com</span>
+            </p>
+          </div>
+        </footer>
+      </div>
+    </div>
+
+    <div class="rail-backdrop" id="rail-backdrop" hidden></div>
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>

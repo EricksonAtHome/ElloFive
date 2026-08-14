@@ -1,7 +1,7 @@
 {
   "name": "ellofive",
-  "version": "1.3.0",
-  "description": "ElloFive AI — Elite Coding System (local Ollama) with FRC7 FRCL, DeepFakes, and private memory",
+  "version": "1.4.0",
+  "description": "ElloFive + Ello5 AI mode (ello5.com) — Elite Coding System with FRC7, DeepFakes, API & UI",
   "type": "module",
   "bin": {
     "ellofive": "./bin/ellofive",
@@ -19,10 +19,13 @@
     "dl": "bash bin/ellofive-dl",
     "memory": "bash bin/ellofive-memory",
     "test": "bash scripts/test-ellofive.sh",
-    "api": "node frc/server.js"
+    "api": "node frc/server.js",
+    "ui": "node frc/server.js",
+    "web": "node frc/server.js"
   },
   "keywords": [
     "ellofive",
+    "ello5",
     "elite-coding",
     "ollama",
     "llm",

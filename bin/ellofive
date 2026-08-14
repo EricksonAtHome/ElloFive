@@ -76,7 +76,8 @@ case "${cmd}" in
     echo "Usage: ellofive <command> [args...]"
     echo ""
     echo "Commands:"
-    echo "  serve              Start Ollama runtime"
+    echo "  serve              Start Ollama runtime (→ ft.svr.ello5.com)"
+    echo "  api|ui|web         Elloten UI + API (Ello5 model · ai/api.ello5.com)"
     echo "  chat [prompt]      Elite Coding chat (Pro + local memory)"
     echo "  fast [prompt]      Fast low-latency chat"
     echo "  ask <prompt>       Alias for chat with prompt"
@@ -88,12 +89,16 @@ case "${cmd}" in
     echo "  setup-all          Full auto install"
     echo "  list               List models"
     echo "  version            Version info"
+    echo ""
+    echo "Elloten (ello5.com) — UX tool for the Ello5 model — see docs/domains.md"
     exit 0
     ;;
   version|--version|-v)
     banner
     echo ""
-    echo "ElloFive 1.3.0 — Elite Coding System"
+    echo "ElloFive 1.4.0 — Elite Coding System"
+    echo "Ello5 AI mode hosts: ai.ello5.com · api.ello5.com · ft.svr.ello5.com"
+    echo "Web UX tool: Elloten · Model: Ello5"
     "${OLLAMA_BIN}" --version
     if [[ -n "${ELLOFIVE_BASE_MODEL:-}" ]]; then
       echo "Pro base : ${ELLOFIVE_BASE_MODEL}"
@@ -135,6 +140,16 @@ case "${cmd}" in
     ;;
   serve)
     exec "${OLLAMA_BIN}" serve
+    ;;
+  api|ui|web|gateway)
+    ensure_runtime
+    if [[ -f "${ROOT}/config/hosts.env" ]]; then
+      # shellcheck disable=SC1091
+      set -a
+      source "${ROOT}/config/hosts.env"
+      set +a
+    fi
+    exec node "${ROOT}/frc/server.js"
     ;;
   *)
     exec "${OLLAMA_BIN}" "$@"
