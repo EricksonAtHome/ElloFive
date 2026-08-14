@@ -19,6 +19,7 @@
     "dl": "bash bin/ellofive-dl",
     "memory": "bash bin/ellofive-memory",
     "test": "bash scripts/test-ellofive.sh",
+    "test:ci": "bash scripts/test-ci.sh",
     "api": "node frc/server.js",
     "ui": "node frc/server.js",
     "web": "node frc/server.js"
