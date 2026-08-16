@@ -38,6 +38,11 @@ ellofive dl smoke
 
 # Elloten UI + Ello5 API
 ellofive api
+
+# Ubuntu Cloud Lab — when user says "test my app"
+ellofive ubuntu status
+ellofive ubuntu test http://127.0.0.1:3000
+# see docs/ubuntu-cloud-lab.md
 # → http://127.0.0.1:3000  (Elloten chat + /v1/chat + /run/:model)
 ```
 

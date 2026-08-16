@@ -85,12 +85,14 @@ case "${cmd}" in
     echo "  run <model>        Raw ollama run"
     echo "  frc <file.frcl>    Run FRC7 FRCL"
     echo "  dl|deepfakes       DeepFakes deep learning toolkit"
+    echo "  ubuntu|lab|test-app  Ubuntu Cloud Lab (test my app)"
     echo "  setup              Rebuild Elite Coding models"
     echo "  setup-all          Full auto install"
     echo "  list               List models"
     echo "  version            Version info"
     echo ""
     echo "Elloten (ello5.com) — UX tool for the Ello5 model — see docs/domains.md"
+    echo "Ubuntu Cloud Lab — when user says \"test my app\": ellofive ubuntu test"
     exit 0
     ;;
   version|--version|-v)
@@ -133,6 +135,18 @@ case "${cmd}" in
   dl|deepfakes|deepfake)
     shift || true
     exec bash "${ROOT}/bin/ellofive-dl" "$@"
+    ;;
+  ubuntu|lab|test-app|test-my-app)
+    shift || true
+    # Default subcommand for "test-app" / "test-my-app" aliases
+    if [[ "${cmd}" == "test-app" || "${cmd}" == "test-my-app" ]]; then
+      if [[ $# -eq 0 ]]; then
+        set -- test
+      elif [[ "${1}" != "status" && "${1}" != "setup" && "${1}" != "open" && "${1}" != "test" && "${1}" != "help" && "${1}" != "-h" && "${1}" != "--help" ]]; then
+        set -- test "$@"
+      fi
+    fi
+    exec bash "${ROOT}/bin/ellofive-ubuntu" "$@"
     ;;
   list|ls)
     echo "ElloFive models:"

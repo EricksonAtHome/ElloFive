@@ -23,11 +23,13 @@ else
   echo "==> Ollama already installed: $(ollama --version)"
 fi
 
-chmod +x "${ROOT}/bin/ellofive" "${ROOT}/bin/ellofive-dl" "${ROOT}/scripts/"*.sh "${ROOT}/frc/cli.js" 2>/dev/null || true
+chmod +x "${ROOT}/bin/ellofive" "${ROOT}/bin/ellofive-dl" "${ROOT}/bin/ellofive-memory" "${ROOT}/bin/ellofive-ubuntu" "${ROOT}/scripts/"*.sh "${ROOT}/frc/cli.js" 2>/dev/null || true
 
 mkdir -p "${HOME}/.local/bin"
 ln -sfn "${ROOT}/bin/ellofive" "${HOME}/.local/bin/ellofive"
 ln -sfn "${ROOT}/bin/ellofive-dl" "${HOME}/.local/bin/ellofive-dl"
+ln -sfn "${ROOT}/bin/ellofive-memory" "${HOME}/.local/bin/ellofive-memory"
+ln -sfn "${ROOT}/bin/ellofive-ubuntu" "${HOME}/.local/bin/ellofive-ubuntu"
 
 if [[ ":$PATH:" != *":${HOME}/.local/bin:"* ]]; then
   echo "export PATH=\"\$HOME/.local/bin:\$PATH\"" >> "${HOME}/.bashrc"

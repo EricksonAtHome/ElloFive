@@ -22,12 +22,17 @@ if ! command -v ollama >/dev/null 2>&1; then
   curl -fsSL https://ollama.com/install.sh | sh
 fi
 
-chmod +x bin/ellofive bin/ellofive-dl bin/ellofive-memory scripts/*.sh frc/cli.js 2>/dev/null || true
+chmod +x bin/ellofive bin/ellofive-dl bin/ellofive-memory bin/ellofive-ubuntu scripts/*.sh frc/cli.js 2>/dev/null || true
 mkdir -p "${HOME}/.local/bin"
 ln -sfn "${ROOT}/bin/ellofive" "${HOME}/.local/bin/ellofive"
 ln -sfn "${ROOT}/bin/ellofive-dl" "${HOME}/.local/bin/ellofive-dl"
 ln -sfn "${ROOT}/bin/ellofive-memory" "${HOME}/.local/bin/ellofive-memory"
+ln -sfn "${ROOT}/bin/ellofive-ubuntu" "${HOME}/.local/bin/ellofive-ubuntu"
 export PATH="${HOME}/.local/bin:${PATH}"
+
+# Ubuntu Cloud Lab (enterprise open-source Ubuntu) — Chrome + display tooling for "test my app"
+echo "==> Ubuntu Cloud Lab setup"
+bash "${ROOT}/bin/ellofive-ubuntu" setup || true
 
 # Node deps
 if [[ -f package-lock.json ]]; then

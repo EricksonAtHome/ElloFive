@@ -5,9 +5,18 @@
 ElloFive is a local LLM runtime that wraps **Ollama**, plus a Node/Express **FRC7 FRCL** layer and a Python **DeepFakes** deep-learning toolkit. Standard commands live in `package.json` scripts and `README.md`; the notes below are the non-obvious startup/run caveats for this environment.
 
 ### Cloud Agent sandbox
-- Install (idempotent): `bash scripts/cloud-agent-install.sh` — Ollama binary if missing, `npm ci`, builds models only when absent.
+- Install (idempotent): `bash scripts/cloud-agent-install.sh` — Ollama binary if missing, `npm ci`, Ubuntu Cloud Lab setup, builds models only when absent.
 - Start: `bash scripts/cloud-agent-start.sh` — starts Ollama if needed, then Elloten API/UI on `:3000` (foreground).
 - Do not put `ollama serve` alone in install; keep durable weights in the snapshot and start services on boot via `start`.
+
+### Ubuntu Cloud Lab (“test my app”)
+- This VM is **Ubuntu 24.04 LTS** (enterprise open source) with `DISPLAY=:1` for computer-use.
+- When the user says “test my app” / “open Ubuntu and check …”:
+  1. `ellofive ubuntu status` (or `ellofive lab status`)
+  2. Start the app under test (e.g. `ellofive api`)
+  3. `ellofive ubuntu test <url>` — opens Chrome on the Ubuntu desktop
+  4. Use computer-use to click/type, screenshot, and report PASS/FAIL
+- Playbook: [`docs/ubuntu-cloud-lab.md`](docs/ubuntu-cloud-lab.md)
 
 ### What the VM snapshot already contains (installed during env setup)
 - The `ollama` binary (`/usr/local/bin/ollama`) and pulled models in `~/.ollama`: `llama3.2:3b` (base) plus the custom `ellofive` and `models5` models.
@@ -33,4 +42,4 @@ Recreate with `bash scripts/setup-model.sh` (pulls `llama3.2:3b` ~2GB, then buil
 - No lint or build step is configured (no ESLint/TS; sources are plain ESM JS + bash). The nearest static check is `node --check frc/*.js` and `bash -n` on the shell scripts.
 
 ### The `ellofive` CLI
-`bin/ellofive` and `bin/ellofive-dl` are symlinked into `~/.local/bin` and `/usr/local/bin` by `scripts/install.sh`. If those symlinks are not present on a fresh VM, call the scripts directly (`bin/ellofive ...`) or add `bin/` to `PATH`. Note `ellofive-frc` is a package bin but is not globally linked; use `node frc/cli.js` for the FRC CLI.
+`bin/ellofive`, `bin/ellofive-dl`, and `bin/ellofive-ubuntu` are symlinked into `~/.local/bin` by `scripts/cloud-agent-install.sh` / `scripts/install.sh`. If those symlinks are not present on a fresh VM, call the scripts directly (`bin/ellofive ...`) or add `bin/` to `PATH`. Note `ellofive-frc` is a package bin but is not globally linked; use `node frc/cli.js` for the FRC CLI.

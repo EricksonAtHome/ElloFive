@@ -5,6 +5,7 @@ npm-debug.log*
 !.env.example
 .ellofive-deepfakes.env
 .ellofive-models.env
+.ellofive-ubuntu-lab.env
 .venv-deepfakes/
 memory/sessions.md
 
