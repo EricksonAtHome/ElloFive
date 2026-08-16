@@ -4,6 +4,11 @@
 
 ElloFive is a local LLM runtime that wraps **Ollama**, plus a Node/Express **FRC7 FRCL** layer and a Python **DeepFakes** deep-learning toolkit. Standard commands live in `package.json` scripts and `README.md`; the notes below are the non-obvious startup/run caveats for this environment.
 
+### Cloud Agent sandbox
+- Install (idempotent): `bash scripts/cloud-agent-install.sh` — Ollama binary if missing, `npm ci`, builds models only when absent.
+- Start: `bash scripts/cloud-agent-start.sh` — starts Ollama if needed, then Elloten API/UI on `:3000` (foreground).
+- Do not put `ollama serve` alone in install; keep durable weights in the snapshot and start services on boot via `start`.
+
 ### What the VM snapshot already contains (installed during env setup)
 - The `ollama` binary (`/usr/local/bin/ollama`) and pulled models in `~/.ollama`: `llama3.2:3b` (base) plus the custom `ellofive` and `models5` models.
 - `node_modules/` (from `npm install`) and the DeepFakes venv at `.venv-deepfakes/` (TensorFlow 2.16 / Keras 3 / OpenCV). The gitignored `.ellofive-deepfakes.env` records the venv path.
