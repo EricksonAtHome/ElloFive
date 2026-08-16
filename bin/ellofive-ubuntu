@@ -112,8 +112,13 @@ open_url() {
     exit 1
   fi
   echo "==> Opening on Ubuntu Cloud Lab: ${url}"
+  PROFILE="${ELLOFIVE_UBUNTU_CHROME_PROFILE:-/tmp/ellofive-ubuntu-chrome-profile}"
+  mkdir -p "${PROFILE}"
   nohup "${CHROME_BIN}" --no-first-run --disable-dev-shm-usage \
-    --window-size=1440,900 "${url}" >/tmp/ellofive-ubuntu-chrome.log 2>&1 &
+    --disable-features=ChromeWhatsNewUI \
+    --user-data-dir="${PROFILE}" \
+    --window-size=1440,900 --window-position=40,40 \
+    "${url}" >/tmp/ellofive-ubuntu-chrome.log 2>&1 &
   echo "Browser PID $!  (log: /tmp/ellofive-ubuntu-chrome.log)"
   echo "AI can now computer-use the Ubuntu desktop to test the app."
 }

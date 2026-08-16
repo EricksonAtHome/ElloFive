@@ -39,3 +39,14 @@ ellofive ubuntu test http://127.0.0.1:5173
 ## Cloud Agent install
 
 `scripts/cloud-agent-install.sh` also runs Ubuntu lab setup so Chrome/display tooling is snapshotted for future agents.
+
+## Demo evidence
+
+Live test on Ubuntu Cloud Lab (Elloten at `:3000`):
+
+| Artifact | Description |
+| --- | --- |
+| [`demos/ubuntu-lab-elloten-loaded.png`](demos/ubuntu-lab-elloten-loaded.png) | Chrome on Ubuntu opened Elloten |
+| [`demos/ubuntu-lab-pass.png`](demos/ubuntu-lab-pass.png) | Ello5 replied `ubuntu-lab-PASS` |
+| [`demos/ubuntu-lab-desktop-pass.png`](demos/ubuntu-lab-desktop-pass.png) | Full Ubuntu desktop + PASS chat |
+| [`demos/ubuntu-cloud-lab-test-demo.mp4`](demos/ubuntu-cloud-lab-test-demo.mp4) | Screen recording of the test |
