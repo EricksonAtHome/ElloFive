@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Syntax check
+        run: |
+          node --check frc/server.js
+          node --check frc/client.js
+          node --check frc/executor.js
+          node --check frc/cli.js
+
+      - name: CI smoke (no Ollama required)
+        run: bash scripts/test-ci.sh
+
+      - name: Pages assets present
+        run: |
+          test -f docs/index.html
+          test -f docs/.nojekyll
+          test -f docs/assets/elloten-hero.jpg
+          test -f web/index.html
