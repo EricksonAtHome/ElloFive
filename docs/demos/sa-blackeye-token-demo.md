@@ -1,15 +1,17 @@
 # Ello5 CLI → SA blackeye token demo
 
-**SA = Start Application**
+**SA = Start Application** (terminal tools only — no webpage)
 
-Flow recorded in the terminal (no webpage):
+Flow recorded in the terminal:
 
-1. `ellofive prompts show sa-blackeye`
-2. `SA list`
-3. `SA blackeye status` — opens Blackeye CLI
-4. `SA blackeye token create --no-prompt` — generates login token
-5. `SA blackeye auth <token>` / `whoami` / `token list`
+1. `SA list` — Start Application tools (`blackeye`, `pig`)
+2. `SA blackeye status` — opens Blackeye CLI (session not logged in)
+3. `SA blackeye token create --no-prompt` — **NEW TOKEN GENERATED**
+4. `SA blackeye auth <token>` — CLI login
+5. `SA blackeye whoami` / `token list` — confirm session
+6. **PASS** — Blackeye opened · login token created
 
 Artifacts:
-- Video: `sa-blackeye-token-demo.mp4`
-- Screens: `sa-blackeye-demo-start.png`, `sa-blackeye-demo-login.png`
+- Video (~16s): `sa-blackeye-token-demo.mp4`
+- Cursor recording: `sa-blackeye-token-demo-cursor.mp4`
+- Screens: `sa-blackeye-demo-start.png`, `sa-blackeye-demo-token.png`, `sa-blackeye-demo-login.png`
