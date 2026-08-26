@@ -4,6 +4,8 @@ Private local software-engineering AI on [Ollama](https://ollama.com), with [FRC
 
 **Elloten** is the chat UX on `ello5.com`. **Ello5** is the AI model. Local CLI stays `ellofive`.
 
+Honest capability map (strengths + limits): [`docs/what-ello5-can-do.md`](docs/what-ello5-can-do.md).
+
 ## Elite Coding System
 
 The model personality lives in [`models/elite-coding-system.md`](models/elite-coding-system.md) and is baked into `ellofive` via `scripts/build-modelfile.sh`.
