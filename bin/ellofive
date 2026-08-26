@@ -17,6 +17,9 @@ if [[ -f "${ROOT}/.ellofive-models.env" ]]; then
   source "${ROOT}/.ellofive-models.env"
 fi
 
+# Ensure SA / blackeye are on PATH for this process
+export PATH="${ROOT}/bin:${PATH}"
+
 cmd="${1:-}"
 
 banner() {
@@ -44,29 +47,112 @@ ensure_runtime() {
   return 1
 }
 
-chat_with_memory() {
-  local model="$1"
-  shift || true
-  ensure_runtime
-  local mem
-  mem="$(bash "${ROOT}/bin/ellofive-memory" context 2>/dev/null || true)"
-  if [[ $# -eq 0 ]]; then
-    if [[ -n "${mem}" ]]; then
-      # Seed interactive session with memory via a one-shot then hand off is awkward;
-      # print memory hint and enter interactive run.
-      echo "(Local memory loaded from memory/knowledge-base.md)"
-    fi
-    exec "${OLLAMA_BIN}" run "${model}"
+# SA = Start Application — run the real CLI (never ask the LLM)
+run_sa_line() {
+  local line="$1"
+  # strip leading SA / sa
+  local rest
+  rest="$(echo "${line}" | sed -E 's/^[[:space:]]*[Ss][Aa][[:space:]]+//')"
+  if [[ -z "${rest}" || "${rest}" == "${line}" ]]; then
+    # bare "SA"
+    bash "${ROOT}/bin/SA" help
+    return $?
   fi
-  local prompt="$*"
+  # shellcheck disable=SC2086
+  bash "${ROOT}/bin/SA" ${rest}
+}
+
+run_blackeye_line() {
+  local line="$1"
+  local rest
+  rest="$(echo "${line}" | sed -E 's/^[[:space:]]*blackeye[[:space:]]+//I')"
+  if [[ -z "${rest}" || "${rest}" == "${line}" ]]; then
+    bash "${ROOT}/bin/blackeye" help
+    return $?
+  fi
+  # shellcheck disable=SC2086
+  bash "${ROOT}/bin/blackeye" ${rest}
+}
+
+is_tool_line() {
+  local line="$1"
+  [[ "${line}" =~ ^[[:space:]]*[Ss][Aa]([[:space:]]|$) ]] && return 0
+  [[ "${line}" =~ ^[[:space:]]*[Bb][Ll][Aa][Cc][Kk][Ee][Yy][Ee]([[:space:]]|$) ]] && return 0
+  return 1
+}
+
+dispatch_tool_line() {
+  local line="$1"
+  if [[ "${line}" =~ ^[[:space:]]*[Ss][Aa]([[:space:]]|$) ]]; then
+    run_sa_line "${line}"
+  else
+    run_blackeye_line "${line}"
+  fi
+}
+
+one_shot_ask() {
+  local model="$1"
+  local user_prompt="$2"
+  local mem prompt
+  mem="$(bash "${ROOT}/bin/ellofive-memory" context 2>/dev/null || true)"
+  prompt="${user_prompt}"
   if [[ -n "${mem}" ]]; then
     prompt="${mem}
 
 USER REQUEST:
-${prompt}"
+${user_prompt}"
   fi
-  # Stream tokens (Ollama default for `run`)
-  exec "${OLLAMA_BIN}" run "${model}" "${prompt}"
+  "${OLLAMA_BIN}" run "${model}" "${prompt}"
+}
+
+interactive_chat() {
+  local model="$1"
+  ensure_runtime
+  echo "(Local memory: memory/knowledge-base.md)"
+  echo "SA = Start Application — type: SA list   or   SA blackeye status"
+  echo "(Not software architecture. Tool lines run for real. Ctrl+C / exit to quit.)"
+  echo ""
+  local line
+  while true; do
+    printf '>>> '
+    IFS= read -r line || break
+    # trim
+    line="${line#"${line%%[![:space:]]*}"}"
+    line="${line%"${line##*[![:space:]]}"}"
+    [[ -z "${line}" ]] && continue
+    if [[ "${line}" == "exit" || "${line}" == "quit" || "${line}" == "/bye" ]]; then
+      echo "bye"
+      break
+    fi
+    if is_tool_line "${line}"; then
+      dispatch_tool_line "${line}" || true
+      echo ""
+      continue
+    fi
+    one_shot_ask "${model}" "${line}" || true
+    echo ""
+  done
+}
+
+chat_with_memory() {
+  local model="$1"
+  shift || true
+  ensure_runtime
+
+  # No args → interactive REPL that runs SA for real
+  if [[ $# -eq 0 ]]; then
+    interactive_chat "${model}"
+    return 0
+  fi
+
+  local user_prompt="$*"
+  # One-shot: if the whole prompt is an SA/blackeye command, run it
+  if is_tool_line "${user_prompt}"; then
+    dispatch_tool_line "${user_prompt}"
+    return $?
+  fi
+
+  one_shot_ask "${model}" "${user_prompt}"
 }
 
 case "${cmd}" in
@@ -81,6 +167,8 @@ case "${cmd}" in
     echo "  chat [prompt]      Elite Coding chat (Pro + local memory)"
     echo "  fast [prompt]      Fast low-latency chat"
     echo "  ask <prompt>       Alias for chat with prompt"
+    echo "  SA|sa <args>       Start Application (same as bin/SA)"
+    echo "  blackeye <args>    Blackeye token CLI"
     echo "  memory ...         Local private knowledge base"
     echo "  run <model>        Raw ollama run"
     echo "  frc <file.frcl>    Run FRC7 FRCL"
@@ -92,9 +180,14 @@ case "${cmd}" in
     echo "  list               List models"
     echo "  version            Version info"
     echo ""
-    echo "Elloten (ello5.com) — UX tool for the Ello5 model — see docs/domains.md"
-    echo "Ubuntu Cloud Lab — when user says \"test my app\": ellofive ubuntu test"
-    echo "SA = Start Application — SA blackeye | ellofive prompts sa"
+    echo "IMPORTANT: SA = Start Application (NOT software architecture)."
+    echo "  SA list"
+    echo "  SA blackeye status"
+    echo "  SA blackeye token create --no-prompt"
+    echo ""
+    echo "Use:  ellofive chat     (not plain: ollama run ellofive)"
+    echo "Then type SA list — it runs the real tool."
+    echo "After pulling updates: ellofive setup   # rebuild model with SA rules"
     exit 0
     ;;
   version|--version|-v)
@@ -103,6 +196,7 @@ case "${cmd}" in
     echo "ElloFive 1.4.0 — Elite Coding System"
     echo "Ello5 AI mode hosts: ai.ello5.com · api.ello5.com · ft.svr.ello5.com"
     echo "Web UX tool: Elloten · Model: Ello5"
+    echo "SA = Start Application"
     "${OLLAMA_BIN}" --version
     if [[ -n "${ELLOFIVE_BASE_MODEL:-}" ]]; then
       echo "Pro base : ${ELLOFIVE_BASE_MODEL}"
@@ -120,6 +214,14 @@ case "${cmd}" in
   memory|mem)
     shift || true
     exec bash "${ROOT}/bin/ellofive-memory" "$@"
+    ;;
+  SA|sa)
+    shift || true
+    exec bash "${ROOT}/bin/SA" "$@"
+    ;;
+  blackeye)
+    shift || true
+    exec bash "${ROOT}/bin/blackeye" "$@"
     ;;
   chat|pro|ask)
     shift || true
@@ -140,7 +242,6 @@ case "${cmd}" in
     ;;
   ubuntu|lab|test-app|test-my-app)
     shift || true
-    # Default subcommand for "test-app" / "test-my-app" aliases
     if [[ "${cmd}" == "test-app" || "${cmd}" == "test-my-app" ]]; then
       if [[ $# -eq 0 ]]; then
         set -- test

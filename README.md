@@ -39,12 +39,14 @@ ellofive dl smoke
 # Elloten UI + Ello5 API
 ellofive api
 
-# Blackeye terminal CLI (SA = Start Application; no webpage)
+# Blackeye terminal CLI (SA = Start Application; NOT software architecture)
 bash scripts/setup-blackeye.sh
+SA list
 SA blackeye status
 SA blackeye token create --no-prompt
-# AI prompts: ellofive prompts sa · docs/prompts.md
-# see docs/blackeye-cli.md
+# Use: ellofive chat  → type SA list  (runs real tool)
+# After git pull: ellofive setup
+# Simple guide: docs/SA.md · prompts: ellofive prompts sa
 
 # Ubuntu Cloud Lab — when user says "test my app"
 ellofive ubuntu status

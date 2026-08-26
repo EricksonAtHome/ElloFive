@@ -1,5 +1,10 @@
 # Blackeye CLI (terminal only)
 
+> **SA = Start Application** — not “software architecture”.  
+> If `SA list` ever listed microservices/SOA, you used plain `ollama run ellofive` with an old model.  
+> Fix: use `ellofive chat` (runs real SA commands) or rebuild with `ellofive setup`.  
+> Simple guide: [`docs/SA.md`](SA.md)
+
 [BlackeyE3.1](https://github.com/EricksonAtHome/BlackeyE3.1.git) is installed for **command-line use**.  
 Nothing opens a webpage when you run `SA blackeye` / `blackeye`.
 
