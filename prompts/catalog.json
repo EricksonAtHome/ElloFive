@@ -1,0 +1,111 @@
+{
+  "version": 1,
+  "product": "Ello5",
+  "sa_meaning": "Start Application",
+  "standard": [
+    {
+      "id": "sa-standard",
+      "title": "SA — Start Application",
+      "tags": ["sa", "standard", "tools"],
+      "prompt": "SA means Start Application. When I say SA <tool>, start that terminal tool (never open a webpage unless I ask). Available tools include: blackeye (token CLI), ellofive api, ellofive ubuntu, ellofive agents. Confirm the tool, the exact CLI command, and run it if you have a shell."
+    }
+  ],
+  "catalog": [
+    {
+      "id": "sa-blackeye",
+      "title": "Start Blackeye CLI",
+      "tags": ["sa", "blackeye", "cli"],
+      "prompt": "SA blackeye: Start Application Blackeye in the terminal only. Run: SA blackeye status then SA blackeye token list. Do not open a browser or next dev."
+    },
+    {
+      "id": "sa-elloten",
+      "title": "Start Elloten API/UI",
+      "tags": ["sa", "elloten", "api"],
+      "prompt": "SA elloten: Start Application for Elloten. Ensure Ollama is up, then start the Ello5 API/UI with ellofive api (port 3000). Report /health."
+    },
+    {
+      "id": "sa-ubuntu-lab",
+      "title": "Start Ubuntu Cloud Lab test",
+      "tags": ["sa", "ubuntu", "test"],
+      "prompt": "SA ubuntu: Start Application Ubuntu Cloud Lab. Run ellofive ubuntu status, then ellofive ubuntu test http://127.0.0.1:3000, and computer-use the app. Report PASS/FAIL with screenshots."
+    },
+    {
+      "id": "sa-agents",
+      "title": "Start Ello5 agent",
+      "tags": ["sa", "agents"],
+      "prompt": "SA agents: Start Application agent stack. Run ellofive agents status, then ellofive agents run \"<goal>\". Prefer system improvements (RAG, tools, memory) over claiming the model weights changed."
+    },
+    {
+      "id": "code-secure-api",
+      "title": "Secure API endpoint",
+      "tags": ["coding", "security"],
+      "prompt": "Write a production-ready secure FastAPI /health endpoint with tests, input validation, and brief threat notes (OWASP). Keep it local/privacy-first."
+    },
+    {
+      "id": "code-review",
+      "title": "Code review",
+      "tags": ["coding", "review"],
+      "prompt": "Review the current repository for bugs, security issues, and missing tests. Rank findings CRITICAL/HIGH/MEDIUM/LOW and propose the smallest safe fix for the top item."
+    },
+    {
+      "id": "debug-failure",
+      "title": "Debug a failure",
+      "tags": ["debugging"],
+      "prompt": "A task failed. Follow: reproduce → read logs → isolate cause → propose fix → add a regression test. Do not claim success until a test passes."
+    },
+    {
+      "id": "refactor-solid",
+      "title": "Refactor for clarity",
+      "tags": ["coding", "refactor"],
+      "prompt": "Refactor the target module for SOLID/DRY/KISS without changing behavior. List risks and how you will verify with tests."
+    },
+    {
+      "id": "memory-save",
+      "title": "Save preference to memory",
+      "tags": ["memory"],
+      "prompt": "Save this as a lasting user preference in local memory (ellofive memory): prefer TypeScript strict mode, privacy-first defaults, and short concrete answers."
+    },
+    {
+      "id": "rag-index",
+      "title": "Build retrieval plan",
+      "tags": ["rag", "system"],
+      "prompt": "Design a minimal RAG plan for ElloFive: what to index (source, docs), how to chunk, how to retrieve before hard answers, and how to evaluate hallucination reduction."
+    },
+    {
+      "id": "model-route",
+      "title": "Model routing",
+      "tags": ["routing"],
+      "prompt": "Propose a model router for Ello5: simple→ellofive-fast, coding→ellofive, complex→stronger if available, live facts→search tool. Give rules as a table."
+    },
+    {
+      "id": "agent-mission",
+      "title": "Autonomous engineering mission",
+      "tags": ["agents", "mission"],
+      "prompt": "Act as Ello5 autonomous engineer: map the system, inventory problems (CRITICAL→LOW), propose top 5 file-level fixes, and write session report items 1–10. Do not pretend code changed unless tests prove it."
+    },
+    {
+      "id": "tool-cli-help",
+      "title": "Explain SA tools",
+      "tags": ["sa", "help"],
+      "prompt": "Explain SA (Start Application): how to list tools with SA list, how to start blackeye, and how this differs from opening a web UI."
+    },
+    {
+      "id": "write-tests",
+      "title": "Add tests",
+      "tags": ["testing"],
+      "prompt": "Add focused tests for the highest-risk untested path. Prefer the existing npm test / smoke suite style. Show commands to run."
+    },
+    {
+      "id": "perf-latency",
+      "title": "Cut latency",
+      "tags": ["performance"],
+      "prompt": "Analyze Ello5 cold start and chat latency. Suggest practical wins (fast model routing, keep-alive, smaller prompts) with expected impact."
+    },
+    {
+      "id": "security-hardening",
+      "title": "Security hardening",
+      "tags": ["security"],
+      "prompt": "Hardening pass for ElloFive: secrets handling, CORS, dependency risk, and unsafe tool boundaries. Rank fixes and avoid breaking local-first use."
+    }
+  ]
+}

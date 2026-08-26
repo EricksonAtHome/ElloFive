@@ -86,6 +86,7 @@ case "${cmd}" in
     echo "  frc <file.frcl>    Run FRC7 FRCL"
     echo "  dl|deepfakes       DeepFakes deep learning toolkit"
     echo "  ubuntu|lab|test-app  Ubuntu Cloud Lab (test my app)"
+    echo "  prompts            Standard AI prompts (SA = Start Application)"
     echo "  setup              Rebuild Elite Coding models"
     echo "  setup-all          Full auto install"
     echo "  list               List models"
@@ -93,6 +94,7 @@ case "${cmd}" in
     echo ""
     echo "Elloten (ello5.com) — UX tool for the Ello5 model — see docs/domains.md"
     echo "Ubuntu Cloud Lab — when user says \"test my app\": ellofive ubuntu test"
+    echo "SA = Start Application — SA blackeye | ellofive prompts sa"
     exit 0
     ;;
   version|--version|-v)
@@ -147,6 +149,10 @@ case "${cmd}" in
       fi
     fi
     exec bash "${ROOT}/bin/ellofive-ubuntu" "$@"
+    ;;
+  prompts|prompt)
+    shift || true
+    exec bash "${ROOT}/bin/ellofive-prompts" "$@"
     ;;
   list|ls)
     echo "ElloFive models:"

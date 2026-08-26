@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SA — Simple App launcher for terminal tools (CLI only).
+# SA — Start Application (terminal tools launcher; CLI only).
 # Usage: SA <tool> [args...]
 # Example: SA blackeye status
 set -euo pipefail
@@ -17,7 +17,9 @@ TOOL="${1:-}"
 
 usage() {
   cat <<'EOF'
-SA — launch terminal tools (no web pages)
+SA — Start Application (terminal tools; no web pages)
+
+SA means Start Application. Use: SA <tool> [args...]
 
 Usage:
   SA <tool> [args...]
@@ -25,21 +27,30 @@ Usage:
   SA help
 
 Tools:
-  blackeye   Token-gated Blackeye CLI (BlackeyE3.1)
-  pig        Legacy Blackeye token helper (same install)
+  blackeye   Start Blackeye token CLI (BlackeyE3.1)
+  pig        Legacy Blackeye token helper
 
 Examples:
   SA blackeye status
   SA blackeye token create --no-prompt
   SA blackeye auth <token>
   SA blackeye shell
+
+AI standard prompt:
+  ellofive prompts sa
+  See docs/prompts.md and prompts/catalog.json
 EOF
 }
 
 list_tools() {
-  echo "Available SA tools:"
+  echo "Start Application — available tools:"
   echo "  blackeye"
   echo "  pig"
+  echo ""
+  echo "Also via ElloFive (not SA aliases yet):"
+  echo "  ellofive api       # Elloten"
+  echo "  ellofive ubuntu    # Ubuntu Cloud Lab"
+  echo "  ellofive agents    # Agent stack"
 }
 
 if [[ -z "${TOOL}" || "${TOOL}" == "help" || "${TOOL}" == "-h" || "${TOOL}" == "--help" ]]; then
@@ -68,7 +79,7 @@ case "${TOOL}" in
     exec node bin/pig.js "$@"
     ;;
   *)
-    echo "Unknown tool: ${TOOL}" >&2
+    echo "Unknown application: ${TOOL}" >&2
     echo "Try: SA list" >&2
     exit 1
     ;;

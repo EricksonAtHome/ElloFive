@@ -3,6 +3,8 @@
 [BlackeyE3.1](https://github.com/EricksonAtHome/BlackeyE3.1.git) is installed for **command-line use**.  
 Nothing opens a webpage when you run `SA blackeye` / `blackeye`.
 
+**SA = Start Application.**
+
 ## Install
 
 ```bash
@@ -13,7 +15,7 @@ export PATH="$HOME/.local/bin:$PATH"
 ## Commands
 
 ```bash
-# Via SA launcher
+# Via SA — Start Application
 SA list
 SA blackeye status
 SA blackeye token create --no-prompt
@@ -27,6 +29,10 @@ SA blackeye logout
 blackeye help
 blackeye token delete <token>
 ```
+
+## AI prompts
+
+Standard SA prompt and more tool prompts: [`docs/prompts.md`](prompts.md) · `ellofive prompts sa`
 
 ## What runs in the terminal
 

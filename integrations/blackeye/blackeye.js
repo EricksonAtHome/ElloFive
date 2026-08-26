@@ -93,13 +93,15 @@ function help() {
   blackeye version
 
 Also:
-  SA blackeye <command...>
+  SA blackeye <command...>     SA = Start Application
   SA list
 
 Notes:
+  • SA means Start Application — terminal tools only.
   • All commands run in the terminal — nothing opens a webpage.
   • WalletConnect UI lives in the Next.js app; use CLI for tokens/auth.
   • Tokens file: ${DB_PATH}
+  • AI prompts: ellofive prompts sa · docs/prompts.md
 `);
 }
 
