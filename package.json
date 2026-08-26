@@ -8,13 +8,16 @@
     "ellofive-frc": "./frc/cli.js",
     "ellofive-dl": "./bin/ellofive-dl",
     "ellofive-memory": "./bin/ellofive-memory",
-    "ellofive-ubuntu": "./bin/ellofive-ubuntu"
+    "ellofive-ubuntu": "./bin/ellofive-ubuntu",
+    "blackeye": "./bin/blackeye",
+    "SA": "./bin/SA"
   },
   "scripts": {
     "setup": "bash scripts/setup-model.sh",
     "build:modelfile": "bash scripts/build-modelfile.sh",
     "setup:deepfakes": "bash scripts/setup-deepfakes.sh",
     "install:runtime": "bash scripts/install.sh",
+    "setup:blackeye": "bash scripts/setup-blackeye.sh",
     "ubuntu:setup": "bash bin/ellofive-ubuntu setup",
     "ubuntu:status": "bash bin/ellofive-ubuntu status",
     "serve": "ollama serve",
