@@ -4,6 +4,8 @@ Private local software-engineering AI on [Ollama](https://ollama.com), with [FRC
 
 **Elloten** is the chat UX on `ello5.com`. **Ello5** is the AI model. Local CLI stays `ellofive`.
 
+Honest capability map (strengths + limits): [`docs/what-ello5-can-do.md`](docs/what-ello5-can-do.md).
+
 ## Elite Coding System
 
 The model personality lives in [`models/elite-coding-system.md`](models/elite-coding-system.md) and is baked into `ellofive` via `scripts/build-modelfile.sh`.
@@ -43,6 +45,11 @@ ellofive api
 ellofive ubuntu status
 ellofive ubuntu test http://127.0.0.1:3000
 # see docs/ubuntu-cloud-lab.md
+
+# Agent stack (KwaiAgents / big-AGI / AgentGPT → Ello5)
+ellofive agents install
+ellofive agents run "Secure a FastAPI health endpoint"
+# see docs/agent-stack.md
 # → http://127.0.0.1:3000  (Elloten chat + /v1/chat + /run/:model)
 ```
 
