@@ -8,6 +8,8 @@ npm-debug.log*
 .ellofive-ubuntu-lab.env
 .venv-deepfakes/
 memory/sessions.md
+memory/.auto-learn.env
+# Raw session dumps stay local; curated learnings/ + knowledge-base.md can sync
 
 .DS_Store
 *.log

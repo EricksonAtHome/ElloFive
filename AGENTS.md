@@ -37,6 +37,11 @@ Recreate with `bash scripts/setup-model.sh` (pulls `llama3.2:3b` ~2GB, then buil
 - `face_recognition`/`dlib` is intentionally NOT installed; the code falls back to an OpenCV Haar cascade detector (`ellofive dl status` reporting `face_recognition missing` is expected). Set `ELLOFIVE_INSTALL_DLIB=1` before `scripts/setup-deepfakes.sh` only if you truly need dlib.
 - WARNING: `scripts/setup-deepfakes.sh` does `rm -rf` on the venv and rebuilds it from scratch (slow). Do not run it casually — the venv already exists from the snapshot; only rerun if the venv is broken/missing.
 
+### Auto-learn memory
+- Local save when user asks / AI tasks finish: `ellofive memory auto on` (default learn=1).
+- GitHub upload: `ellofive memory sync` or `ellofive memory auto sync-on`.
+- Docs: [`docs/memory-learn.md`](docs/memory-learn.md). Sessions stay gitignored; `knowledge-base.md` + `learnings/` + `tasks/` sync.
+
 ### Test / lint / build
 - Tests: `npm test` (runs `scripts/test-ellofive.sh`, an 11-check smoke suite covering the runtime, models, FRCL execution, and DeepFakes). Requires the Ollama runtime (the script starts it if needed) and the DeepFakes venv.
 - No lint or build step is configured (no ESLint/TS; sources are plain ESM JS + bash). The nearest static check is `node --check frc/*.js` and `bash -n` on the shell scripts.
