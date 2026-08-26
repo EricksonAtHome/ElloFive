@@ -18,6 +18,13 @@ ElloFive is a local LLM runtime that wraps **Ollama**, plus a Node/Express **FRC
   4. Use computer-use to click/type, screenshot, and report PASS/FAIL
 - Playbook: [`docs/ubuntu-cloud-lab.md`](docs/ubuntu-cloud-lab.md)
 
+### Agent stack (KwaiAgents / big-AGI / AgentGPT → Ello5)
+- Install: `ellofive agents install` (clones into `vendor/`, KwaiAgents venv, big-AGI Ollama env)
+- Native agent: `ellofive agents run "goal"` (uses Ollama `/v1/chat/completions` + `ellofive-fast`)
+- Docs: [`docs/agent-stack.md`](docs/agent-stack.md)
+- AgentGPT/SuperAGI need Docker — point `OPENAI_API_BASE=http://127.0.0.1:11434/v1` model `ellofive`
+- LMOps is research-only (prompt ideas)
+
 ### What the VM snapshot already contains (installed during env setup)
 - The `ollama` binary (`/usr/local/bin/ollama`) and pulled models in `~/.ollama`: `llama3.2:3b` (base) plus the custom `ellofive` and `models5` models.
 - `node_modules/` (from `npm install`) and the DeepFakes venv at `.venv-deepfakes/` (TensorFlow 2.16 / Keras 3 / OpenCV). The gitignored `.ellofive-deepfakes.env` records the venv path.

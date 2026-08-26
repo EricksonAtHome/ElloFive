@@ -6,8 +6,12 @@ npm-debug.log*
 .ellofive-deepfakes.env
 .ellofive-models.env
 .ellofive-ubuntu-lab.env
+.ellofive-agents.env
 .venv-deepfakes/
+.venv-agents/
+vendor/
 memory/sessions.md
+memory/agent-runs/
 
 .DS_Store
 *.log

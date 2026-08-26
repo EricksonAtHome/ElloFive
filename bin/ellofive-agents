@@ -1,0 +1,225 @@
+#!/usr/bin/env bash
+# ElloFive agent stack — connect AgentGPT / SuperAGI / big-AGI / KwaiAgents / LMOps ideas to Ello5
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+VENDOR="${ROOT}/vendor"
+VENV="${ROOT}/.venv-agents"
+HOST="${ELLOFIVE_HOST:-${OLLAMA_HOST:-http://127.0.0.1:11434}}"
+HOST="${HOST%/}"
+MODEL="${ELLO5_AGENT_MODEL:-${ELLO5_MODEL:-ellofive-fast}}"
+
+cmd="${1:-status}"
+shift || true
+
+ensure_ollama() {
+  if curl -sf "${HOST}/api/tags" >/dev/null 2>&1; then
+    return 0
+  fi
+  if command -v ollama >/dev/null 2>&1; then
+    nohup ollama serve >/tmp/ellofive-serve.log 2>&1 &
+    for _ in $(seq 1 40); do
+      curl -sf "${HOST}/api/tags" >/dev/null 2>&1 && return 0
+      sleep 1
+    done
+  fi
+  echo "Ollama/Ello5 runtime not up at ${HOST}" >&2
+  return 1
+}
+
+status() {
+  echo "Ello5 Agent Stack"
+  echo "  Runtime : ${HOST}"
+  if curl -sf "${HOST}/api/tags" >/dev/null 2>&1; then
+    echo "  Ollama  : up"
+    curl -sf "${HOST}/api/tags" | python3 -c "import sys,json; print('  Models :', ', '.join(m['name'] for m in json.load(sys.stdin).get('models',[])))" 2>/dev/null || true
+  else
+    echo "  Ollama  : down"
+  fi
+  echo "  Vendor  :"
+  for name in KwaiAgents big-AGI AgentGPT SuperAGI LMOps; do
+    if [[ -d "${VENDOR}/${name}/.git" || -f "${VENDOR}/${name}/README.md" ]]; then
+      echo "    ✓ ${name}"
+    else
+      echo "    · ${name} (run: ellofive agents install)"
+    fi
+  done
+  [[ -x "${VENV}/bin/python" ]] && echo "  Kwai venv: ready" || echo "  Kwai venv: not installed"
+  [[ -d "${VENDOR}/big-AGI/node_modules" ]] && echo "  big-AGI : node_modules present" || echo "  big-AGI : not npm-installed"
+  echo ""
+  echo "Use:"
+  echo "  ellofive agents run \"your goal\"     # native Ello5 agent (recommended)"
+  echo "  ellofive agents kwai \"query\"        # KwaiAgents → Ello5"
+  echo "  ellofive agents bigagi               # start big-AGI UI on :3080"
+  echo "See docs/agent-stack.md"
+}
+
+clone_repos() {
+  mkdir -p "${VENDOR}"
+  clone_one() {
+    local url="$1" dir="$2"
+    if [[ -d "${VENDOR}/${dir}/.git" ]]; then
+      echo "  already: ${dir}"
+      return 0
+    fi
+    echo "  cloning ${dir}…"
+    git clone --depth 1 "${url}" "${VENDOR}/${dir}"
+  }
+  clone_one https://github.com/KwaiKEG/KwaiAgents.git KwaiAgents
+  clone_one https://github.com/enricoros/big-AGI.git big-AGI
+  # Sparse docs clones for heavy Docker stacks
+  if [[ ! -d "${VENDOR}/AgentGPT/.git" ]]; then
+    git clone --depth 1 --filter=blob:none --sparse https://github.com/reworkd/AgentGPT.git "${VENDOR}/AgentGPT"
+    (cd "${VENDOR}/AgentGPT" && git sparse-checkout set README.md .env.example docker-compose.yml || true)
+  else
+    echo "  already: AgentGPT"
+  fi
+  if [[ ! -d "${VENDOR}/SuperAGI/.git" ]]; then
+    git clone --depth 1 --filter=blob:none --sparse https://github.com/TransformerOptimus/SuperAGI.git "${VENDOR}/SuperAGI"
+    (cd "${VENDOR}/SuperAGI" && git sparse-checkout set README.md || true)
+  else
+    echo "  already: SuperAGI"
+  fi
+  if [[ ! -d "${VENDOR}/LMOps/.git" ]]; then
+    git clone --depth 1 --filter=blob:none --sparse https://github.com/microsoft/LMOps.git "${VENDOR}/LMOps"
+    (cd "${VENDOR}/LMOps" && git sparse-checkout set README.md || true)
+  else
+    echo "  already: LMOps"
+  fi
+}
+
+install_kwai() {
+  echo "==> KwaiAgents → Ello5 (Ollama OpenAI API)"
+  python3 -m venv "${VENV}"
+  # shellcheck disable=SC1091
+  source "${VENV}/bin/activate"
+  pip install -q --upgrade pip setuptools wheel
+  # Minimal deps for KAgentSys-Lite against local LLM (skip heavy transformers)
+  pip install -q \
+    "openai==0.27.8" requests bs4 pandas docstring_parser \
+    "duckduckgo-search>=4.2" translate tiktoken lunar_python ephem
+  (cd "${VENDOR}/KwaiAgents" && pip install -q -e .)
+  # Patch FastChatClient to use Ollama chat completions (no trailing-slash completions)
+  python3 "${ROOT}/integrations/kwaiagents/patch_ello5.py"
+  deactivate
+  echo "==> KwaiAgents ready"
+}
+
+install_bigagi() {
+  echo "==> big-AGI → Ello5/Ollama"
+  if [[ ! -d "${VENDOR}/big-AGI" ]]; then
+    echo "big-AGI missing; run install first" >&2
+    return 1
+  fi
+  cat >"${VENDOR}/big-AGI/.env.local" <<EOF
+# Ello5 / Ollama connection for big-AGI
+OLLAMA_API_HOST=${HOST}
+EOF
+  (
+    cd "${VENDOR}/big-AGI"
+    if [[ ! -d node_modules ]]; then
+      echo "  npm install (may take a few minutes)…"
+      npm install --no-fund --no-audit
+    fi
+  )
+  echo "==> big-AGI configured (OLLAMA_API_HOST=${HOST})"
+  echo "    Start with: ellofive agents bigagi"
+}
+
+install_all() {
+  echo "==> Installing Ello5 agent stack"
+  clone_repos
+  install_kwai || echo "KwaiAgents install had issues (native agent still works)"
+  # big-AGI npm is optional / heavy — try but don't fail whole install
+  install_bigagi || echo "big-AGI npm skipped/failed (UI can be installed later)"
+  cat >"${ROOT}/.ellofive-agents.env" <<EOF
+ELLOFIVE_HOST=${HOST}
+ELLO5_AGENT_MODEL=${MODEL}
+ELLO5_AGENTS_VENDOR=${VENDOR}
+EOF
+  status
+}
+
+run_native() {
+  ensure_ollama
+  local goal="$*"
+  if [[ -z "${goal}" ]]; then
+    echo "Usage: ellofive agents run \"your goal\"" >&2
+    exit 1
+  fi
+  exec node "${ROOT}/integrations/ello5-agent/agent.js" "${goal}"
+}
+
+run_kwai() {
+  ensure_ollama
+  local query="$*"
+  if [[ -z "${query}" ]]; then
+    echo "Usage: ellofive agents kwai \"Who is …?\"" >&2
+    exit 1
+  fi
+  if [[ ! -x "${VENV}/bin/python" ]]; then
+    echo "KwaiAgents not installed. Run: ellofive agents install" >&2
+    exit 1
+  fi
+  # shellcheck disable=SC1091
+  source "${VENV}/bin/activate"
+  # Prefer patched chat client against Ollama :11434
+  export ELLO5_KWAI_HOST="${HOST#http://}"
+  export ELLO5_KWAI_HOST="${ELLO5_KWAI_HOST#https://}"
+  local khost="${ELLO5_KWAI_HOST%%:*}"
+  local kport="${ELLO5_KWAI_HOST##*:}"
+  [[ "${khost}" == "${kport}" ]] && kport=11434
+  kagentsys \
+    --query="${query}" \
+    --llm_name="${MODEL}" \
+    --use_local_llm \
+    --local_llm_host="${khost}" \
+    --local_llm_port="${kport}" \
+    --lang=en \
+    --max_iter_num="${ELLO5_AGENT_MAX_ITERS:-3}" || \
+  python3 "${ROOT}/integrations/kwaiagents/run_ello5.py" "${query}"
+}
+
+run_bigagi() {
+  ensure_ollama
+  if [[ ! -d "${VENDOR}/big-AGI" ]]; then
+    echo "Run: ellofive agents install" >&2
+    exit 1
+  fi
+  if [[ ! -d "${VENDOR}/big-AGI/node_modules" ]]; then
+    install_bigagi
+  fi
+  echo "Starting big-AGI on http://127.0.0.1:3080 (Ollama → Ello5 at ${HOST})"
+  echo "In UI: Models → add Ollama → ${HOST} → pick ellofive / ellofive-fast"
+  cd "${VENDOR}/big-AGI"
+  export OLLAMA_API_HOST="${HOST}"
+  exec npx next dev -p 3080
+}
+
+case "${cmd}" in
+  status|info) status ;;
+  install|setup) install_all ;;
+  clone) clone_repos ;;
+  run|agent|goal) run_native "$@" ;;
+  kwai|kwaiagents) run_kwai "$@" ;;
+  bigagi|big-agi|ui) run_bigagi "$@" ;;
+  -h|--help|help)
+    cat <<'EOF'
+Ello5 Agent Stack
+
+  ellofive agents status
+  ellofive agents install          # clone + KwaiAgents + big-AGI config
+  ellofive agents run "goal"       # native Ello5 agent (AgentGPT-style loop)
+  ellofive agents kwai "query"     # KwaiAgents KAgentSys-Lite → Ello5
+  ellofive agents bigagi           # big-AGI UI on :3080 → Ollama/Ello5
+
+AgentGPT / SuperAGI need Docker — point OPENAI_BASE_URL at Ollama:
+  http://127.0.0.1:11434/v1   model: ellofive
+LMOps is research papers — see docs/agent-stack.md for ideas to borrow.
+EOF
+    ;;
+  *)
+    echo "Unknown: ${cmd} (try: ellofive agents help)" >&2
+    exit 1
+    ;;
+esac

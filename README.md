@@ -43,6 +43,11 @@ ellofive api
 ellofive ubuntu status
 ellofive ubuntu test http://127.0.0.1:3000
 # see docs/ubuntu-cloud-lab.md
+
+# Agent stack (KwaiAgents / big-AGI / AgentGPT → Ello5)
+ellofive agents install
+ellofive agents run "Secure a FastAPI health endpoint"
+# see docs/agent-stack.md
 # → http://127.0.0.1:3000  (Elloten chat + /v1/chat + /run/:model)
 ```
 
