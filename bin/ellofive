@@ -48,25 +48,36 @@ chat_with_memory() {
   local model="$1"
   shift || true
   ensure_runtime
-  local mem
+  local mem user_prompt prompt reply_file
   mem="$(bash "${ROOT}/bin/ellofive-memory" context 2>/dev/null || true)"
   if [[ $# -eq 0 ]]; then
     if [[ -n "${mem}" ]]; then
-      # Seed interactive session with memory via a one-shot then hand off is awkward;
-      # print memory hint and enter interactive run.
       echo "(Local memory loaded from memory/knowledge-base.md)"
+      echo "(Auto-learn: ellofive memory auto status — one-shot asks are saved)"
     fi
     exec "${OLLAMA_BIN}" run "${model}"
   fi
-  local prompt="$*"
+  user_prompt="$*"
+  prompt="${user_prompt}"
   if [[ -n "${mem}" ]]; then
     prompt="${mem}
 
 USER REQUEST:
-${prompt}"
+${user_prompt}"
   fi
-  # Stream tokens (Ollama default for `run`)
-  exec "${OLLAMA_BIN}" run "${model}" "${prompt}"
+  # Stream to terminal and capture for auto-learn
+  reply_file="$(mktemp)"
+  set +e
+  "${OLLAMA_BIN}" run "${model}" "${prompt}" | tee "${reply_file}"
+  local rc=${PIPESTATUS[0]}
+  set -e
+  # Auto-save + learn (local; optional GitHub sync via memory auto sync-on)
+  bash "${ROOT}/bin/ellofive-memory" learn \
+    --ask "${user_prompt}" \
+    --reply "$(head -c 4000 "${reply_file}" 2>/dev/null || true)" \
+    --source cli >/dev/null 2>&1 || true
+  rm -f "${reply_file}"
+  return "${rc}"
 }
 
 case "${cmd}" in
@@ -81,7 +92,8 @@ case "${cmd}" in
     echo "  chat [prompt]      Elite Coding chat (Pro + local memory)"
     echo "  fast [prompt]      Fast low-latency chat"
     echo "  ask <prompt>       Alias for chat with prompt"
-    echo "  memory ...         Local private knowledge base"
+    echo "  memory ...         Local learn + optional GitHub sync"
+    echo "  learn ...          Alias: ellofive memory learn|task|auto|sync"
     echo "  run <model>        Raw ollama run"
     echo "  frc <file.frcl>    Run FRC7 FRCL"
     echo "  dl|deepfakes       DeepFakes deep learning toolkit"
@@ -117,6 +129,10 @@ case "${cmd}" in
     ;;
   memory|mem)
     shift || true
+    exec bash "${ROOT}/bin/ellofive-memory" "$@"
+    ;;
+  learn|task)
+    # ellofive learn … / ellofive task … → memory
     exec bash "${ROOT}/bin/ellofive-memory" "$@"
     ;;
   chat|pro|ask)

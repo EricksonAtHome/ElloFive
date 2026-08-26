@@ -1,19 +1,37 @@
 #!/usr/bin/env bash
-# ElloFive local long-term memory (privacy-first, files on disk)
+# ElloFive local long-term memory — save, auto-learn, optional GitHub sync
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MEM_DIR="${ELLOFIVE_MEMORY_DIR:-${ROOT}/memory}"
 KB="${MEM_DIR}/knowledge-base.md"
 LOG="${MEM_DIR}/sessions.md"
+LEARN_DIR="${MEM_DIR}/learnings"
+CFG="${MEM_DIR}/.auto-learn.env"
+TASKS_DIR="${MEM_DIR}/tasks"
 
-mkdir -p "${MEM_DIR}"
+mkdir -p "${MEM_DIR}" "${LEARN_DIR}" "${TASKS_DIR}"
 [[ -f "${KB}" ]] || printf '# ElloFive local knowledge base\n\n' > "${KB}"
 [[ -f "${LOG}" ]] || printf '# Session notes\n\n' > "${LOG}"
 
+# Defaults: local auto-learn ON, GitHub auto-sync OFF (privacy-first)
+load_cfg() {
+  # shellcheck disable=SC1090
+  [[ -f "${CFG}" ]] && source "${CFG}" || true
+  ELLOFIVE_LEARN="${ELLOFIVE_LEARN:-1}"
+  ELLOFIVE_MEMORY_AUTO_SYNC="${ELLOFIVE_MEMORY_AUTO_SYNC:-0}"
+  ELLOFIVE_MEMORY_SYNC_REMOTE="${ELLOFIVE_MEMORY_SYNC_REMOTE:-origin}"
+  ELLOFIVE_MEMORY_SYNC_BRANCH="${ELLOFIVE_MEMORY_SYNC_BRANCH:-}"
+}
+
+load_cfg
+
+stamp() { date -u +%Y-%m-%dT%H:%M:%SZ; }
+day() { date -u +%Y-%m-%d; }
+
 usage() {
   cat <<'EOF'
-ElloFive memory (local, private)
+ElloFive memory (local learn + optional GitHub sync)
 
   ellofive memory list
   ellofive memory show
@@ -21,7 +39,272 @@ ElloFive memory (local, private)
   ellofive memory prefer "preference"
   ellofive memory decide "architecture decision"
   ellofive memory clear-sessions
+
+Auto-learn (saves when user asks / AI finishes a task):
+  ellofive memory learn --ask "user text" [--reply "ai text"] [--source cli|api|agent]
+  ellofive memory task "goal" [--result "summary"] [--source agent]
+  ellofive memory auto status|on|off|sync-on|sync-off
+
+GitHub upload (memory/knowledge-base.md + learnings/ + tasks/):
+  ellofive memory sync [--message "…"]
+  ellofive memory sync-status
+
+Env / memory/.auto-learn.env:
+  ELLOFIVE_LEARN=1|0              auto-save asks/tasks locally (default 1)
+  ELLOFIVE_MEMORY_AUTO_SYNC=1|0  push to GitHub after learn (default 0)
+  ELLOFIVE_MEMORY_SYNC_REMOTE    default origin
+  ELLOFIVE_MEMORY_SYNC_BRANCH    default: current branch
 EOF
+}
+
+write_cfg() {
+  cat > "${CFG}" <<EOF
+# ElloFive auto-learn config (local)
+ELLOFIVE_LEARN=${ELLOFIVE_LEARN}
+ELLOFIVE_MEMORY_AUTO_SYNC=${ELLOFIVE_MEMORY_AUTO_SYNC}
+ELLOFIVE_MEMORY_SYNC_REMOTE=${ELLOFIVE_MEMORY_SYNC_REMOTE}
+ELLOFIVE_MEMORY_SYNC_BRANCH=${ELLOFIVE_MEMORY_SYNC_BRANCH}
+EOF
+}
+
+truncate_text() {
+  local text="$1" max="${2:-800}"
+  text="${text//$'\r'/ }"
+  if [[ ${#text} -gt ${max} ]]; then
+    printf '%s…' "${text:0:${max}}"
+  else
+    printf '%s' "${text}"
+  fi
+}
+
+# Extract a short learning line from ask + reply (heuristic, no extra LLM)
+distill() {
+  local ask="$1" reply="${2:-}"
+  local a r
+  a="$(truncate_text "$(echo "${ask}" | tr '\n' ' ' | sed 's/  */ /g')" 160)"
+  r="$(truncate_text "$(echo "${reply}" | tr '\n' ' ' | sed 's/  */ /g')" 200)"
+  if [[ -n "${r}" ]]; then
+    printf 'Q: %s | A: %s' "${a}" "${r}"
+  else
+    printf 'Ask: %s' "${a}"
+  fi
+}
+
+ensure_recent_section() {
+  if ! grep -q '^## Recent learnings' "${KB}" 2>/dev/null; then
+    printf '\n## Recent learnings\n' >> "${KB}"
+  fi
+}
+
+append_learning() {
+  local kind="$1" source="$2" line="$3"
+  local ts day_file
+  ts="$(stamp)"
+  day_file="${LEARN_DIR}/$(day).md"
+
+  [[ -f "${day_file}" ]] || printf '# Learnings %s\n\n' "$(day)" > "${day_file}"
+  printf -- '- **%s** (%s · %s) — %s\n' "${kind}" "${ts}" "${source}" "${line}" >> "${day_file}"
+  printf -- '- %s [%s/%s] — %s\n' "${ts}" "${kind}" "${source}" "${line}" >> "${LOG}"
+
+  ensure_recent_section
+  # Keep KB recent section lean: prepend newest after the heading
+  local tmp
+  tmp="$(mktemp)"
+  awk -v line="- ${ts} [${kind}] — ${line}" '
+    BEGIN { inserted=0 }
+    /^## Recent learnings$/ {
+      print
+      print line
+      inserted=1
+      next
+    }
+    { print }
+    END {
+      if (!inserted) {
+        print ""
+        print "## Recent learnings"
+        print line
+      }
+    }
+  ' "${KB}" > "${tmp}"
+  # Cap recent learnings to ~40 lines under that section
+  awk '
+    /^## Recent learnings$/ { print; insec=1; n=0; next }
+    /^## / && insec { insec=0 }
+    insec {
+      if ($0 ~ /^- /) { n++; if (n>40) next }
+    }
+    { print }
+  ' "${tmp}" > "${KB}"
+  rm -f "${tmp}"
+}
+
+maybe_auto_sync() {
+  if [[ "${ELLOFIVE_MEMORY_AUTO_SYNC}" == "1" ]]; then
+    cmd_sync "auto-learn $(stamp)" || true
+  fi
+}
+
+cmd_learn() {
+  local ask="" reply="" source="cli"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --ask) ask="${2:-}"; shift 2 || true ;;
+      --reply) reply="${2:-}"; shift 2 || true ;;
+      --source) source="${2:-cli}"; shift 2 || true ;;
+      *)
+        if [[ -z "${ask}" ]]; then ask="$1"; shift
+        elif [[ -z "${reply}" ]]; then reply="$1"; shift
+        else shift
+        fi
+        ;;
+    esac
+  done
+  if [[ "${ELLOFIVE_LEARN}" != "1" ]]; then
+    echo "Learn skipped (ELLOFIVE_LEARN=0). Enable: ellofive memory auto on"
+    return 0
+  fi
+  [[ -n "${ask}" ]] || { echo "usage: ellofive memory learn --ask \"...\" [--reply \"...\"]" >&2; return 1; }
+  local line
+  line="$(distill "${ask}" "${reply}")"
+  append_learning "ask" "${source}" "${line}"
+  echo "Learned ask → memory/learnings/$(day).md + knowledge-base.md"
+  maybe_auto_sync
+}
+
+cmd_task() {
+  local goal="" result="" source="agent"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --result) result="${2:-}"; shift 2 || true ;;
+      --source) source="${2:-agent}"; shift 2 || true ;;
+      --goal) goal="${2:-}"; shift 2 || true ;;
+      *)
+        if [[ -z "${goal}" ]]; then goal="$1"; shift
+        elif [[ -z "${result}" ]]; then result="$1"; shift
+        else shift
+        fi
+        ;;
+    esac
+  done
+  if [[ "${ELLOFIVE_LEARN}" != "1" ]]; then
+    echo "Learn skipped (ELLOFIVE_LEARN=0)."
+    return 0
+  fi
+  [[ -n "${goal}" ]] || { echo "usage: ellofive memory task \"goal\" [--result \"...\"]" >&2; return 1; }
+
+  local ts file line
+  ts="$(stamp)"
+  file="${TASKS_DIR}/$(date -u +%Y%m%dT%H%M%SZ).md"
+  {
+    echo "# Task ${ts}"
+    echo
+    echo "## Goal"
+    echo "${goal}"
+    echo
+    echo "## Result"
+    echo "${result:-"(none)"}"
+    echo
+    echo "source: ${source}"
+  } > "${file}"
+
+  line="$(distill "${goal}" "${result}")"
+  append_learning "task" "${source}" "${line}"
+  echo "Learned task → ${file#"${ROOT}/"}"
+  maybe_auto_sync
+}
+
+cmd_auto() {
+  local sub="${1:-status}"
+  case "${sub}" in
+    status)
+      echo "ELLOFIVE_LEARN=${ELLOFIVE_LEARN}"
+      echo "ELLOFIVE_MEMORY_AUTO_SYNC=${ELLOFIVE_MEMORY_AUTO_SYNC}"
+      echo "ELLOFIVE_MEMORY_SYNC_REMOTE=${ELLOFIVE_MEMORY_SYNC_REMOTE}"
+      echo "ELLOFIVE_MEMORY_SYNC_BRANCH=${ELLOFIVE_MEMORY_SYNC_BRANCH:-"(current)"}"
+      echo "config: ${CFG}"
+      ;;
+    on)
+      ELLOFIVE_LEARN=1
+      write_cfg
+      echo "Auto-learn ON (local save when user asks / AI tasks finish)"
+      ;;
+    off)
+      ELLOFIVE_LEARN=0
+      write_cfg
+      echo "Auto-learn OFF"
+      ;;
+    sync-on)
+      ELLOFIVE_LEARN=1
+      ELLOFIVE_MEMORY_AUTO_SYNC=1
+      write_cfg
+      echo "Auto-learn ON + GitHub auto-sync ON (pushes memory after each learn)"
+      ;;
+    sync-off)
+      ELLOFIVE_MEMORY_AUTO_SYNC=0
+      write_cfg
+      echo "GitHub auto-sync OFF (local learn unchanged: ELLOFIVE_LEARN=${ELLOFIVE_LEARN})"
+      ;;
+    *)
+      echo "usage: ellofive memory auto status|on|off|sync-on|sync-off" >&2
+      return 1
+      ;;
+  esac
+}
+
+cmd_sync_status() {
+  cd "${ROOT}"
+  echo "Repo: ${ROOT}"
+  git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "(not a git repo)"
+  echo "Tracked memory files:"
+  git status -sb -- memory/knowledge-base.md memory/learnings memory/tasks 2>/dev/null || true
+  echo "Auto-sync: ${ELLOFIVE_MEMORY_AUTO_SYNC}"
+}
+
+cmd_sync() {
+  local msg="${*:-chore(memory): sync learned asks and tasks $(stamp)}"
+  # Strip accidental --message flag
+  if [[ "${1:-}" == "--message" ]]; then
+    shift || true
+    msg="${*:-chore(memory): sync learned asks and tasks $(stamp)}"
+  fi
+
+  cd "${ROOT}"
+  if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    echo "Not a git repository — cannot sync to GitHub" >&2
+    return 1
+  fi
+
+  # Never commit secrets / session raw dump by default
+  mkdir -p memory/learnings memory/tasks
+  touch memory/learnings/.gitkeep memory/tasks/.gitkeep
+
+  git add memory/knowledge-base.md memory/learnings memory/tasks 2>/dev/null || true
+
+  if git diff --cached --quiet; then
+    echo "Nothing new to sync (memory already up to date)"
+    return 0
+  fi
+
+  git commit -m "${msg}" || true
+
+  local remote="${ELLOFIVE_MEMORY_SYNC_REMOTE}"
+  local branch="${ELLOFIVE_MEMORY_SYNC_BRANCH}"
+  if [[ -z "${branch}" ]]; then
+    branch="$(git rev-parse --abbrev-ref HEAD)"
+  fi
+
+  if ! git remote get-url "${remote}" >/dev/null 2>&1; then
+    echo "Remote '${remote}' missing — commit kept local only" >&2
+    return 0
+  fi
+
+  if git push -u "${remote}" "${branch}"; then
+    echo "Synced memory → GitHub (${remote}/${branch})"
+  else
+    echo "Push failed — commit is local. Check credentials / branch." >&2
+    return 1
+  fi
 }
 
 cmd="${1:-list}"
@@ -32,6 +315,9 @@ case "${cmd}" in
   list)
     echo "Memory dir: ${MEM_DIR}"
     ls -la "${MEM_DIR}"
+    echo ""
+    echo "Learnings: ${LEARN_DIR}"
+    ls -la "${LEARN_DIR}" 2>/dev/null || true
     ;;
   show)
     echo "===== knowledge-base.md ====="
@@ -41,35 +327,56 @@ case "${cmd}" in
       echo "===== sessions.md (tail) ====="
       tail -n 40 "${LOG}"
     fi
+    if ls "${LEARN_DIR}"/*.md >/dev/null 2>&1; then
+      echo ""
+      echo "===== latest learnings ====="
+      # shellcheck disable=SC2012
+      latest="$(ls -1 "${LEARN_DIR}"/*.md | tail -n 1)"
+      tail -n 30 "${latest}"
+    fi
     ;;
   add)
     note="${*-}"
     [[ -n "${note}" ]] || { echo "usage: ellofive memory add \"note\"" >&2; exit 1; }
-    printf -- '- %s — %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "${note}" >> "${KB}"
+    printf -- '- %s — %s\n' "$(stamp)" "${note}" >> "${KB}"
     echo "Saved to knowledge-base.md"
+    maybe_auto_sync
     ;;
   prefer)
     note="${*-}"
     [[ -n "${note}" ]] || { echo "usage: ellofive memory prefer \"...\"" >&2; exit 1; }
-    printf -- '- preference: %s — %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "${note}" >> "${KB}"
+    printf -- '- preference: %s — %s\n' "$(stamp)" "${note}" >> "${KB}"
     echo "Preference saved"
+    maybe_auto_sync
     ;;
   decide)
     note="${*-}"
     [[ -n "${note}" ]] || { echo "usage: ellofive memory decide \"...\"" >&2; exit 1; }
-    printf -- '- decision: %s — %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "${note}" >> "${KB}"
+    printf -- '- decision: %s — %s\n' "$(stamp)" "${note}" >> "${KB}"
     echo "Decision saved"
+    maybe_auto_sync
     ;;
   clear-sessions)
     printf '# Session notes\n\n' > "${LOG}"
-    echo "Session log cleared (knowledge-base kept)"
+    echo "Session log cleared (knowledge-base + learnings kept)"
     ;;
   context)
-    # Print memory block for injection into prompts
     echo "LOCAL MEMORY / KNOWLEDGE BASE (private, on-disk):"
     echo
     cat "${KB}"
+    if ls "${LEARN_DIR}"/*.md >/dev/null 2>&1; then
+      echo
+      echo "RECENT DAILY LEARNINGS:"
+      # shellcheck disable=SC2012
+      latest="$(ls -1 "${LEARN_DIR}"/*.md | tail -n 1)"
+      tail -n 20 "${latest}"
+    fi
     ;;
+  learn) cmd_learn "$@" ;;
+  task) cmd_task "$@" ;;
+  auto) cmd_auto "$@" ;;
+  sync) cmd_sync "$@" ;;
+  sync-status) cmd_sync_status ;;
   *)
     echo "Unknown memory command: ${cmd}" >&2
     usage >&2

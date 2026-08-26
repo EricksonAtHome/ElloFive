@@ -96,6 +96,25 @@ fi
 MEM_OUT="$("${ROOT}/bin/ellofive-memory" list 2>&1 || true)"
 if echo "${MEM_OUT}" | grep -qi 'knowledge-base'; then ok "ellofive memory list"; else bad "ellofive memory list"; fi
 
+# Auto-learn: user ask → learnings + KB (no model call)
+LEARN_OUT="$("${ROOT}/bin/ellofive-memory" learn --ask "test prefer concise answers" --reply "ok concise" --source test 2>&1 || true)"
+DAY_LEARN="$(ls -1 "${ROOT}/memory/learnings/"*.md 2>/dev/null | tail -n 1 || true)"
+if echo "${LEARN_OUT}" | grep -qi 'Learned' && [[ -n "${DAY_LEARN}" ]] && grep -q 'concise' "${DAY_LEARN}" && grep -q 'Recent learnings' "${ROOT}/memory/knowledge-base.md"; then
+  ok "ellofive memory auto-learn ask"
+else
+  echo "${LEARN_OUT}" | sed 's/^/  | /'
+  bad "ellofive memory auto-learn ask"
+fi
+TASK_OUT="$("${ROOT}/bin/ellofive-memory" task "smoke task" --result "PASS" --source test 2>&1 || true)"
+if echo "${TASK_OUT}" | grep -qi 'Learned task' && ls "${ROOT}/memory/tasks/"*.md >/dev/null 2>&1; then
+  ok "ellofive memory learn task"
+else
+  echo "${TASK_OUT}" | sed 's/^/  | /'
+  bad "ellofive memory learn task"
+fi
+AUTO_OUT="$("${ROOT}/bin/ellofive-memory" auto status 2>&1 || true)"
+if echo "${AUTO_OUT}" | grep -q 'ELLOFIVE_LEARN='; then ok "ellofive memory auto status"; else bad "ellofive memory auto status"; fi
+
 NODE_OUT="$(node "${ROOT}/frc/cli.js" "${ROOT}/examples/hello.frcl" 2>&1 || true)"
 if echo "${NODE_OUT}" | grep -qiE 'ElloFive|FRC|OUTPUT'; then
   ok "FRC7 FRCL via ElloFive"

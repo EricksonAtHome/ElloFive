@@ -11,12 +11,50 @@
 
 import express from "express";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { chat, generate, getHost, listModels } from "./client.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 const WEB_ROOT = path.join(ROOT, "web");
+const MEMORY_BIN = path.join(ROOT, "bin", "ellofive-memory");
+
+/** Auto-save user ask + AI reply into local memory (optional GitHub sync). */
+function autoLearn(ask, reply, source = "api") {
+  if (!ask) return;
+  try {
+    spawnSync(
+      "bash",
+      [
+        MEMORY_BIN,
+        "learn",
+        "--ask",
+        String(ask).slice(0, 4000),
+        "--reply",
+        String(reply || "").slice(0, 4000),
+        "--source",
+        source,
+      ],
+      { timeout: 20_000, encoding: "utf8" }
+    );
+  } catch {
+    // never fail the chat path because of memory
+  }
+}
+
+function memoryContextBlock() {
+  try {
+    const out = spawnSync("bash", [MEMORY_BIN, "context"], {
+      timeout: 10_000,
+      encoding: "utf8",
+    });
+    if (out.status === 0 && out.stdout) return String(out.stdout).trim();
+  } catch {
+    /* ignore */
+  }
+  return "";
+}
 
 const app = express();
 const PORT = Number(process.env.ELLOFIVE_PORT || process.env.PORT || 3000);
@@ -167,6 +205,7 @@ app.post("/run/:model", async (req, res) => {
 app.post("/v1/chat", async (req, res) => {
   const model = req.body?.model || DEFAULT_MODEL;
   let messages = req.body?.messages;
+  let userText = "";
 
   if (!Array.isArray(messages) || messages.length === 0) {
     const text = req.body?.message ?? req.body?.prompt ?? req.body?.input;
@@ -177,21 +216,93 @@ app.post("/v1/chat", async (req, res) => {
       });
       return;
     }
-    messages = [{ role: "user", content: String(text) }];
+    userText = String(text);
+    messages = [{ role: "user", content: userText }];
+  } else {
+    const lastUser = [...messages].reverse().find((m) => m?.role === "user");
+    userText = String(lastUser?.content || "");
+  }
+
+  // Inject local knowledge base so Elloten chats learn from prior asks/tasks
+  const mem = memoryContextBlock();
+  if (mem) {
+    messages = [
+      {
+        role: "system",
+        content: `${mem}\n\nUse this local memory when relevant. Prefer privacy-first, local answers.`,
+      },
+      ...messages,
+    ];
   }
 
   try {
     const data = await chat({ model, messages });
-    const output = data.message?.content ?? data.response ?? "";
+    const output = String(data.message?.content ?? data.response ?? "").trim();
+    autoLearn(userText, output, "api");
     res.json({
       mode: "Ello5",
       model,
-      output: String(output).trim(),
+      output,
       message: data.message || { role: "assistant", content: output },
+      learned: true,
       status: "success",
     });
   } catch (err) {
     res.status(502).json({ error: err.message, status: "error", mode: "Ello5" });
+  }
+});
+
+/**
+ * Explicit task learn endpoint (agent / SA tools)
+ * POST /v1/memory/task  { goal, result?, source? }
+ */
+app.post("/v1/memory/task", (req, res) => {
+  const goal = req.body?.goal ?? req.body?.task ?? req.body?.prompt;
+  if (!goal) {
+    res.status(400).json({ error: 'Provide "goal"', status: "error" });
+    return;
+  }
+  const result = req.body?.result ?? req.body?.output ?? "";
+  const source = req.body?.source || "api-task";
+  try {
+    const out = spawnSync(
+      "bash",
+      [
+        MEMORY_BIN,
+        "task",
+        "--goal",
+        String(goal).slice(0, 4000),
+        "--result",
+        String(result).slice(0, 4000),
+        "--source",
+        String(source),
+      ],
+      { timeout: 30_000, encoding: "utf8" }
+    );
+    res.json({
+      status: "success",
+      learned: out.status === 0,
+      output: String(out.stdout || "").trim(),
+    });
+  } catch (err) {
+    res.status(500).json({ status: "error", error: err.message });
+  }
+});
+
+/** Manual sync to GitHub */
+app.post("/v1/memory/sync", (req, res) => {
+  try {
+    const msg = req.body?.message || "chore(memory): sync via Elloten API";
+    const out = spawnSync("bash", [MEMORY_BIN, "sync", "--message", String(msg)], {
+      timeout: 120_000,
+      encoding: "utf8",
+    });
+    res.json({
+      status: out.status === 0 ? "success" : "error",
+      output: String(out.stdout || out.stderr || "").trim(),
+    });
+  } catch (err) {
+    res.status(500).json({ status: "error", error: err.message });
   }
 });
 
