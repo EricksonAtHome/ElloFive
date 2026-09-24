@@ -1,8 +1,12 @@
 # ElloFive AI — Elite Coding System
 
+![Elloten chat with Ello5](docs/assets/elloten-hero.jpg)
+
 Private local software-engineering AI on [Ollama](https://ollama.com), with [FRC7](https://github.com/EricksonAtHome/FRC7) FRCL, [DeepFakes](https://github.com/yeahreum/DeepFakes) deep learning, and an on-disk knowledge base.
 
 **Elloten** is the chat UX on `ello5.com`. **Ello5** is the AI model. Local CLI stays `ellofive`.
+
+**Photo above:** live **Elloten** UI answering real Ello5 prompts. Site: [GitHub Pages](https://ericksonathome.github.io/ElloFive/) (after Pages deploy).
 
 ## Elite Coding System
 
@@ -67,6 +71,8 @@ curl -s http://127.0.0.1:3000/v1/chat \
 ## Test demo
 
 ### How Elloten works (live)
+
+![Elloten live demo still](docs/assets/elloten-hero.jpg)
 
 Real **Elloten** session with **Ello5 Fast** — normal question → write code → do a task → ask time → ask news:
 

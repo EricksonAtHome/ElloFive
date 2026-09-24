@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Elloten · Ello5 — ElloFive</title>
+    <meta
+      name="description"
+      content="Elloten is the chat UX for the Ello5 model. ElloFive is the local Elite Coding System."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #f4f5f7;
+        --card: #fff;
+        --ink: #111;
+        --muted: #667085;
+        --line: #e5e7eb;
+        --blue: #0b66ff;
+        --font: "Plus Jakarta Sans", system-ui, sans-serif;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: var(--font);
+        color: var(--ink);
+        background: var(--bg);
+        line-height: 1.5;
+      }
+      .wrap { width: min(980px, 92vw); margin: 0 auto; padding: 2rem 0 4rem; }
+      header {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 1rem; margin-bottom: 2rem;
+      }
+      .brand { display: flex; align-items: center; gap: 0.65rem; font-weight: 700; text-decoration: none; color: inherit; }
+      .mark {
+        width: 2rem; height: 2rem; border-radius: 50%; background: var(--blue);
+      }
+      nav a {
+        color: var(--muted); text-decoration: none; font-weight: 600; font-size: 0.9rem; margin-left: 1rem;
+      }
+      nav a:hover { color: var(--blue); }
+      .hero {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.04);
+      }
+      .hero img {
+        display: block; width: 100%; height: auto; background: #ddd;
+      }
+      .hero-body { padding: 1.5rem 1.6rem 1.75rem; }
+      .hero-body h1 {
+        margin: 0; font-size: clamp(1.8rem, 4vw, 2.5rem); letter-spacing: -0.03em;
+      }
+      .hero-body p { margin: 0.7rem 0 0; color: var(--muted); max-width: 40rem; }
+      .actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1.2rem; }
+      .btn {
+        display: inline-flex; align-items: center; justify-content: center;
+        padding: 0.7rem 1.1rem; border-radius: 999px; font-weight: 650; font-size: 0.9rem;
+        text-decoration: none; border: 1px solid var(--line);
+      }
+      .btn.primary { background: var(--blue); color: #fff; border-color: var(--blue); }
+      .btn.ghost { background: #fff; color: var(--ink); }
+      .grid {
+        display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem; margin-top: 1.25rem;
+      }
+      .card {
+        background: var(--card); border: 1px solid var(--line); border-radius: 16px; overflow: hidden;
+      }
+      .card img { width: 100%; display: block; aspect-ratio: 16/10; object-fit: cover; background: #e8e8e8; }
+      .card .pad { padding: 1rem 1.1rem 1.2rem; }
+      .card h2 { margin: 0; font-size: 1.05rem; }
+      .card p { margin: 0.4rem 0 0; color: var(--muted); font-size: 0.9rem; }
+      .note {
+        margin-top: 1.5rem; padding: 1rem 1.1rem; border-radius: 12px;
+        background: #eef4ff; color: #1d4ed8; font-size: 0.9rem;
+      }
+      footer { margin-top: 2rem; color: var(--muted); font-size: 0.8rem; }
+      @media (max-width: 720px) {
+        .grid { grid-template-columns: 1fr; }
+        nav a:not(:last-child) { display: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <a class="brand" href="./">
+          <span class="mark" aria-hidden="true"></span>
+          Elloten
+        </a>
+        <nav>
+          <a href="https://github.com/EricksonAtHome/ElloFive">GitHub</a>
+          <a href="./elloten-live-demo.mp4">Live demo</a>
+          <a href="./domains.md">Domains</a>
+        </nav>
+      </header>
+
+      <section class="hero">
+        <img
+          src="./assets/elloten-hero.jpg"
+          alt="Elloten chat UI screenshot with Ello5 replies"
+          width="1920"
+          height="1200"
+        />
+        <div class="hero-body">
+          <h1>Elloten + Ello5</h1>
+          <p>
+            <strong>Elloten</strong> is the chat UX.
+            <strong>Ello5</strong> is the AI model.
+            Local CLI stays <code>ellofive</code> — Elite Coding System on Ollama.
+          </p>
+          <div class="actions">
+            <a class="btn primary" href="./elloten-live-demo.mp4">Watch live demo</a>
+            <a class="btn ghost" href="https://github.com/EricksonAtHome/ElloFive#quick-start">Quick start</a>
+          </div>
+        </div>
+      </section>
+
+      <div class="grid">
+        <article class="card">
+          <img src="./assets/elloten-chat.jpg" alt="Earlier Elloten UI demo still" />
+          <div class="pad">
+            <h2>UI smoke</h2>
+            <p>ChatGPT-clean Elloten shell talking to the Ello5 model.</p>
+          </div>
+        </article>
+        <article class="card">
+          <img src="./assets/ellofive-cli.jpg" alt="ElloFive CLI demo still" />
+          <div class="pad">
+            <h2>CLI + FRC</h2>
+            <p>Local <code>ellofive</code> runtime, FRCL, and Elite Coding System.</p>
+          </div>
+        </article>
+      </div>
+
+      <p class="note">
+        This GitHub Pages site is a visual landing (photos + demos) — not a dump of the README.
+        Repo docs stay on GitHub; run the app locally with <code>ellofive api</code>.
+      </p>
+
+      <footer>
+        ElloFive · Elloten UX · Ello5 model ·
+        <a href="https://github.com/EricksonAtHome/ElloFive">EricksonAtHome/ElloFive</a>
+      </footer>
+    </div>
+  </body>
+</html>
