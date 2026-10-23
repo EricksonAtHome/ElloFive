@@ -32,6 +32,12 @@ ellofive chat "Write a secure FastAPI health endpoint with tests"
 
 ellofive memory add "Prefer TypeScript strict mode"
 ellofive memory show
+# Auto-learn when you ask / when AI finishes a task; optional GitHub sync
+ellofive memory auto on
+ellofive ask "Prefer short concrete answers"
+ellofive memory sync          # upload learnings to GitHub
+# ellofive memory auto sync-on  # also push after every ask/task
+# see docs/memory-learn.md
 
 ellofive frc examples/hello.frcl
 ellofive dl smoke
@@ -105,16 +111,19 @@ ellofive api   # open http://127.0.0.1:3000
 | --- | --- |
 | `models/elite-coding-system.md` | Elite coding personality source |
 | `ellofive` / `ellofive chat` | Pro chat with local memory injection |
-| `ellofive memory` | Private on-disk knowledge base |
+| `ellofive memory` | Auto-learn asks/tasks + optional GitHub sync |
 | `frc/` | FRCL → real local inference |
 | `web/` | **Elloten** chat UX (Ello5 model) |
 | `ellofive api` | Elloten + API gateway for `ai` / `api.ello5.com` |
 | `deeplearning/DeepFakes` | Deep learning toolkit |
 | `memory/knowledge-base.md` | Durable preferences & decisions |
+| `memory/learnings/` | Daily digests from asks/tasks |
+| `docs/memory-learn.md` | Auto-learn + GitHub sync guide |
 
 ## Privacy
 
-Default mode is offline/local. Memory stays in `memory/` on your machine. No hidden telemetry.
+Default mode is offline/local. Asks/tasks auto-save under `memory/` on your machine.
+GitHub upload is **opt-in** (`ellofive memory sync` or `memory auto sync-on`). No hidden telemetry.
 
 ## Test
 
