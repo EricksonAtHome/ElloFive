@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+# SA — Start Application (terminal tools launcher; CLI only).
+# Usage: SA <tool> [args...]
+# Example: SA blackeye status
+set -euo pipefail
+
+SRC="${BASH_SOURCE[0]}"
+while [[ -L "${SRC}" ]]; do
+  DIR="$(cd "$(dirname "${SRC}")" && pwd)"
+  SRC="$(readlink "${SRC}")"
+  [[ "${SRC}" != /* ]] && SRC="${DIR}/${SRC}"
+done
+BIN_DIR="$(cd "$(dirname "${SRC}")" && pwd)"
+ROOT="$(cd "${BIN_DIR}/.." && pwd)"
+
+TOOL="${1:-}"
+
+usage() {
+  cat <<'EOF'
+SA — Start Application (terminal tools; no web pages)
+
+SA means Start Application. Use: SA <tool> [args...]
+
+Usage:
+  SA <tool> [args...]
+  SA list
+  SA help
+
+Tools:
+  blackeye   Start Blackeye token CLI (BlackeyE3.1)
+  pig        Legacy Blackeye token helper
+
+Examples:
+  SA blackeye status
+  SA blackeye token create --no-prompt
+  SA blackeye auth <token>
+  SA blackeye shell
+
+AI standard prompt:
+  ellofive prompts sa
+  See docs/prompts.md and prompts/catalog.json
+EOF
+}
+
+list_tools() {
+  echo "Start Application — available tools:"
+  echo "  blackeye"
+  echo "  pig"
+  echo ""
+  echo "Also via ElloFive (not SA aliases yet):"
+  echo "  ellofive api       # Elloten"
+  echo "  ellofive ubuntu    # Ubuntu Cloud Lab"
+  echo "  ellofive agents    # Agent stack"
+}
+
+if [[ -z "${TOOL}" || "${TOOL}" == "help" || "${TOOL}" == "-h" || "${TOOL}" == "--help" ]]; then
+  usage
+  exit 0
+fi
+
+if [[ "${TOOL}" == "list" || "${TOOL}" == "ls" ]]; then
+  list_tools
+  exit 0
+fi
+
+shift || true
+
+case "${TOOL}" in
+  blackeye|Blackeye|BLACKEYE)
+    exec bash "${ROOT}/bin/blackeye" "$@"
+    ;;
+  pig)
+    BE="${ROOT}/tools/BlackeyE3.1"
+    if [[ ! -f "${BE}/bin/pig.js" ]]; then
+      echo "pig not found. Run: bash scripts/setup-blackeye.sh" >&2
+      exit 1
+    fi
+    cd "${BE}"
+    exec node bin/pig.js "$@"
+    ;;
+  *)
+    echo "Unknown application: ${TOOL}" >&2
+    echo "Try: SA list" >&2
+    exit 1
+    ;;
+esac

@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+# List / show Ello5 standard prompts (including SA = Start Application)
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+CATALOG="${ROOT}/prompts/catalog.json"
+
+cmd="${1:-list}"
+shift || true
+
+if [[ ! -f "${CATALOG}" ]]; then
+  echo "Missing ${CATALOG}" >&2
+  exit 1
+fi
+
+case "${cmd}" in
+  list|ls|"")
+    python3 - <<PY
+import json
+from pathlib import Path
+data=json.loads(Path("${CATALOG}").read_text())
+print("SA =", data.get("sa_meaning", "Start Application"))
+print("")
+print("Standard:")
+for p in data.get("standard", []):
+    print(f"  {p['id']:20}  {p['title']}")
+print("")
+print("Catalog:")
+for p in data.get("catalog", []):
+    tags=",".join(p.get("tags") or [])
+    print(f"  {p['id']:20}  {p['title']}  [{tags}]")
+print("")
+print("Show one: ellofive prompts show <id>")
+print("Docs: docs/prompts.md")
+PY
+    ;;
+  show|get)
+    id="${1:-}"
+    if [[ -z "${id}" ]]; then
+      echo "Usage: ellofive prompts show <id>" >&2
+      exit 1
+    fi
+    python3 - <<PY
+import json, sys
+from pathlib import Path
+data=json.loads(Path("${CATALOG}").read_text())
+items=data.get("standard", []) + data.get("catalog", [])
+for p in items:
+    if p["id"] == "${id}":
+        print(p["title"])
+        print("")
+        print(p["prompt"])
+        sys.exit(0)
+print("Unknown id: ${id}", file=sys.stderr)
+sys.exit(1)
+PY
+    ;;
+  sa|standard)
+    python3 - <<PY
+import json
+from pathlib import Path
+data=json.loads(Path("${CATALOG}").read_text())
+print("SA =", data.get("sa_meaning"))
+print("")
+for p in data.get("standard", []):
+    print(p["prompt"])
+PY
+    ;;
+  -h|--help|help)
+    cat <<'EOF'
+Ello5 prompts
+
+  ellofive prompts              List prompt ids
+  ellofive prompts sa           Show SA (Start Application) standard prompt
+  ellofive prompts show <id>    Print full prompt text
+
+SA = Start Application — e.g. SA blackeye, SA list
+EOF
+    ;;
+  *)
+    echo "Unknown: ${cmd} (try: ellofive prompts help)" >&2
+    exit 1
+    ;;
+esac

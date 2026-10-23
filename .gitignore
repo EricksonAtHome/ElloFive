@@ -9,6 +9,9 @@ npm-debug.log*
 .venv-deepfakes/
 memory/sessions.md
 
+# Blackeye local install (clone + secrets)
+tools/BlackeyE3.1/
+
 .DS_Store
 *.log
 /tmp/

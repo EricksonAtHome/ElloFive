@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# Blackeye launcher — terminal CLI only (never opens a browser).
+set -euo pipefail
+
+# Resolve real script path (works when symlinked into ~/.local/bin)
+SRC="${BASH_SOURCE[0]}"
+while [[ -L "${SRC}" ]]; do
+  DIR="$(cd "$(dirname "${SRC}")" && pwd)"
+  SRC="$(readlink "${SRC}")"
+  [[ "${SRC}" != /* ]] && SRC="${DIR}/${SRC}"
+done
+BIN_DIR="$(cd "$(dirname "${SRC}")" && pwd)"
+ROOT="$(cd "${BIN_DIR}/.." && pwd)"
+CLI_ROOT="${ROOT}/tools/BlackeyE3.1"
+CLI="${CLI_ROOT}/bin/blackeye.js"
+FALLBACK="${ROOT}/integrations/blackeye/blackeye.js"
+
+if [[ ! -f "${CLI}" ]]; then
+  if [[ -f "${FALLBACK}" ]]; then
+    echo "==> Blackeye tree missing — running setup…"
+    bash "${ROOT}/scripts/setup-blackeye.sh"
+  else
+    echo "Blackeye not installed. Run: bash scripts/setup-blackeye.sh" >&2
+    exit 1
+  fi
+fi
+
+if [[ ! -d "${CLI_ROOT}/node_modules" ]]; then
+  echo "==> Installing Blackeye deps…"
+  (cd "${CLI_ROOT}" && npm ci --no-fund --no-audit)
+fi
+
+# Prefer installed copy; fall back to integrations source
+if [[ ! -f "${CLI}" ]]; then
+  install -m 755 "${FALLBACK}" "${CLI}"
+fi
+
+exec node "${CLI}" "$@"
