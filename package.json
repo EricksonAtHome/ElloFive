@@ -8,7 +8,8 @@
     "ellofive-frc": "./frc/cli.js",
     "ellofive-dl": "./bin/ellofive-dl",
     "ellofive-memory": "./bin/ellofive-memory",
-    "ellofive-ubuntu": "./bin/ellofive-ubuntu"
+    "ellofive-ubuntu": "./bin/ellofive-ubuntu",
+    "ellofive-agents": "./bin/ellofive-agents"
   },
   "scripts": {
     "setup": "bash scripts/setup-model.sh",
@@ -17,6 +18,8 @@
     "install:runtime": "bash scripts/install.sh",
     "ubuntu:setup": "bash bin/ellofive-ubuntu setup",
     "ubuntu:status": "bash bin/ellofive-ubuntu status",
+    "agents:install": "bash bin/ellofive-agents install",
+    "agents:run": "bash bin/ellofive-agents run",
     "serve": "ollama serve",
     "frc": "node frc/cli.js",
     "dl": "bash bin/ellofive-dl",

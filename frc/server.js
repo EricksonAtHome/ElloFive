@@ -134,6 +134,58 @@ app.get("/v1/models", async (_req, res) => {
   }
 });
 
+/** OpenAI-compatible model list (AgentGPT / SuperAGI clients) */
+app.get("/v1/openai/models", async (_req, res) => {
+  try {
+    const models = await listModels();
+    res.json({
+      object: "list",
+      data: models.map((m) => ({
+        id: m.name,
+        object: "model",
+        owned_by: "ello5",
+      })),
+    });
+  } catch (err) {
+    res.status(503).json({ error: { message: err.message } });
+  }
+});
+
+/**
+ * OpenAI-compatible chat — for AgentGPT / SuperAGI / KwaiAgents adapters.
+ * Prefer Ollama directly: http://127.0.0.1:11434/v1  model=ellofive
+ * Elloten :3000 also proxies so OPENAI_BASE_URL can target this gateway.
+ */
+app.post("/v1/chat/completions", async (req, res) => {
+  const model = req.body?.model || DEFAULT_MODEL;
+  const messages = req.body?.messages;
+  if (!Array.isArray(messages) || messages.length === 0) {
+    res.status(400).json({ error: 'Provide OpenAI-style "messages"' });
+    return;
+  }
+  try {
+    const data = await chat({ model, messages });
+    const content = String(data.message?.content ?? data.response ?? "").trim();
+    res.json({
+      id: `chatcmpl-ello5-${Date.now()}`,
+      object: "chat.completion",
+      created: Math.floor(Date.now() / 1000),
+      model,
+      choices: [
+        {
+          index: 0,
+          message: { role: "assistant", content },
+          finish_reason: "stop",
+        },
+      ],
+      usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
+      mode: "Ello5",
+    });
+  } catch (err) {
+    res.status(502).json({ error: { message: err.message, type: "ello5_error" } });
+  }
+});
+
 /** FRC7-compatible: POST /run/:model { input } */
 app.post("/run/:model", async (req, res) => {
   const model = req.params.model || DEFAULT_MODEL;
